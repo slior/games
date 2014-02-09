@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style type="text/css">
+canvas{
+	border-right:#666 1px solid;
+	border-bottom:#666 1px solid;
+	border-left:#666 1px solid;
+	align : center;
+}
+</style>
+
+<script type="text/javascript" src="prototype.js" ></script>
+<script type="text/javascript" src="kibo.js" ></script> 
+<script type="text/javascript" src="fabric.js" ></script> 
+<script type="text/javascript" src="fonts/CA_BND_Web_Bold_700.font.js" ></script> 
+
+<script type="text/javascript">
+
+
+var keyboard = null;
+var circle = null;
+var fc = null;
+function setup()
+{
+	var f = new fabric.Canvas('cnvsTest');
+	var c = new fabric.Circle({ top: 100, 
+								left: 100, 
+								radius: 50,
+								fill: 'rgba(0,200,0,1)' });
+	f.add(c);
+	circle = c;
+	fc = f;
+	
+	keyboard = new Kibo();
+	var moveDelta = c.radius;
+	keyboard.up('up',function(evt) { move('top',-1*moveDelta); } );
+	keyboard.up('down',function(evt) { move('top',moveDelta); } );
+	keyboard.up('right',function(evt) { move('left',moveDelta); } );
+	keyboard.up('left',function(evt) { move('left',-1*moveDelta); } );
+}
+
+function move(prop,delta)
+{
+	circle.set(prop,circle[prop] + delta);
+	fc.renderAll();
+}
+
+function canvasTest()
+{
+	
+	circle.stroke = 'red';
+	fc.renderAll();
+	
+	setTimeout(function() {circle.stroke = ''; fc.renderAll(); },2000);
+	
+	/*
+	var f = new fabric.Canvas('cnvsTest');
+	var c = new fabric.Circle({ 	top: 100, 
+									left: 100, 
+									radius: 50,
+									fill: 'rgba(0,200,0,1)' });
+	f.add(c);
+	var textObj = new fabric.Text('Hello Text!', { 
+          fontFamily: 'CA_BND_Web_Bold_700', 
+          left: 400,
+          top: 225,
+          fontSize: 80,
+          textAlign: "left",
+          fill:"#FF0000"  // Set text color to red
+      });
+	
+	f.add(textObj);
+	*/
+/*	var ctxt = $('cnvsTest').getContext('2d');
+	ctxt.fillStyle = 'rgba(0,200,0,1)';
+	var radius = 30;
+	var center = {x : 100, y : 100};
+	ctxt.beginPath();
+	ctxt.arc(center.x, center.y, radius, 0, 2 * Math.PI, false);
+	ctxt.closePath();
+	//ctxt.fillStyle = DISC_FILL_STYLES[this.disc.state];
+	ctxt.fill();
+	
+	//setTimeout(highlight,1000);
+	var highlightShape = function() {ctxt.arc(center.x, center.y, radius, 0, 2 * Math.PI, false);};
+	//shortHighlight(ctxt,highlightShape,2000,'black',2,'white',3);
+	shortHighlight(ctxt,highlightShape,2000,'black','white',2);
+*/	
+	/*
+	setTimeout(function() {highlight(
+							ctxt,
+							highlightShape,
+							'black',
+							2); }
+				,1000);
+	setTimeout(function() {removeHighlight(
+							ctxt,
+							highlightShape,
+							'white',
+							3); }
+				,2000);
+
+	function highlight()
+	{
+
+		ctxt.strokeStyle = 'black';
+		ctxt.lineWidth=2;
+		ctxt.arc(center.x, center.y, radius, 0, 2 * Math.PI, false);
+		ctxt.stroke();
+
+		setTimeout(removeHighlight,1000);
+	}
+	
+	function removeHighlight()
+	{
+		ctxt.globalCompositeOperation = 'destination-out';
+			ctxt.strokeStyle = 'white';
+			ctxt.lineWidth=2;
+			ctxt.beginPath();
+			ctxt.lineWidth=3;
+			ctxt.arc(center.x, center.y, radius, 0, 2 * Math.PI, false);
+			//ctxt.clearRect(center.x-radius-1,center.y-radius-1,radius*2+2,radius*2+2);
+			ctxt.closePath();
+			ctxt.stroke();
+		ctxt.globalCompositeOperation = 'source-over';
+		
+		setTimeout(highlight,1000);
+	}
+*/	
+}
+/*
+function highlight(ctxt,shapeFunc,strokeStyle,lineWidth)
+{
+	if (!ctxt) return;
+	if (strokeStyle) ctxt.strokeStyle = strokeStyle;
+	if (lineWidth) ctxt.lineWidth = lineWidth;
+	
+	shapeFunc.call();
+	
+	ctxt.stroke();
+}
+
+function removeHighlight(ctxt,shapeFunc,strokeStyle,lineWidth)
+{
+	if (!ctxt) return;
+	if (strokeStyle) ctxt.strokeStyle = strokeStyle;
+	if (lineWidth) ctxt.lineWidth = lineWidth;
+	ctxt.globalCompositeOperation = 'destination-out';
+		shapeFunc.call();
+		ctxt.stroke();
+	ctxt.globalCompositeOperation = 'source-over';
+}
+*/
+function shortHighlight(ctxt,shapeFunc,delay,onStrokeStyle,offStrokeStyle,lineWidth)
+{
+	highlight(ctxt,shapeFunc,onStrokeStyle,lineWidth);
+	
+	setTimeout(function() {removeHighlight(ctxt,shapeFunc,offStrokeStyle,lineWidth+1);},delay);
+	
+	function highlight(ctxt,shapeFunc,strokeStyle,lineWidth)
+	{
+		if (!ctxt) return;
+		if (strokeStyle) ctxt.strokeStyle = strokeStyle;
+		if (lineWidth) ctxt.lineWidth = lineWidth;
+		
+		shapeFunc.call();
+		
+		ctxt.stroke();
+	}
+
+	function removeHighlight(ctxt,shapeFunc,strokeStyle,lineWidth)
+	{
+		if (!ctxt) return;
+		if (strokeStyle) ctxt.strokeStyle = strokeStyle;
+		if (lineWidth) ctxt.lineWidth = lineWidth;
+		ctxt.globalCompositeOperation = 'destination-out';
+			shapeFunc.call();
+			ctxt.stroke();
+		ctxt.globalCompositeOperation = 'source-over';
+	}
+
+}
+
+
+var Counter = Class.create({
+	initialize : function()
+	{
+		this.count = 0;
+	},
+	
+	add : function (c) {
+		this.count += c;
+	}
+	
+});
+
+
+function deferTest()
+{
+	var cnt = new Counter();
+	
+	cnt.add(1);
+	
+	alert("Count 1: " + cnt.count);
+	
+	//cnt.add.defer(4);
+	//((function(a) {this.add(a); }).bind(cnt)).defer(4);
+	enq(function() {this.add(2); },cnt);
+	
+	enq(function(a) {this.add(a); }, cnt, 4);
+	//((function () { this.add(2); }).bind(cnt)).call();
+	
+	alert("Count 2: " + cnt.count);
+	//(function() { alert("Count 3: " + cnt.count); }).delay(2);
+	(function() { alert("Count 3: " + cnt.count); }).defer();
+	
+}
+
+function enq(f,_this)
+{
+	if (_this)
+		f = f.bind(_this);
+	var args =  Array.prototype.slice.call(arguments,2);
+	f.defer.apply(f,args);
+}
+
+</script>
+</head>
+
+<body onload="setup();">
+
+<canvas id="cnvsTest" width="350" height="300" style="align=left"></canvas>
+<button onclick="canvasTest()">Test</button>
+
+<button onclick="deferTest()">Test Deferral</button>
+
+</body>
+
+</html>

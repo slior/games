@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: disc.js</title>
+    
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+    
+    <h1 class="page-title">Source: disc.js</h1>
+    
+    
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source"><code>
+//Assumes prototype.js is loaded
+
+/**
+	The possible states for a disc in the game: it is either VISIBLE or hidden, in which case it can be HARD or WEAK.
+	@see Disc
+ */
+var DISC_STATE = {VISIBLE : 1, HARD : 2, WEAK : 3}
+/**
+	The Disc class is responsible for maintaining the information of a single disc, as well as to draw it on the canvas.
+	The disc information includes its number and state, which &lt;b>must&lt;/b> be provided in construction.
+	@classdesc
+ */
+var Disc = Class.create ({
+	/**
+		Initialize the disc object
+	 */
+	initialize : function(_number,_state)
+	{
+		//TODO: validate input
+		this.number = _number;
+		this.state = _state;
+		
+		this.discSize = CONFIG.CELL_SIZE - CONFIG.CELL_MARGIN;
+	},
+	
+	/**
+		Draw this disc on the given canvas object, in the given canvas position.
+		@param {structure} canvasPos The position on the canvas, a structure with x and y members.
+		@param {object} canvas A fabric static canvas object to draw the disc on.
+	 */
+	drawAt : function (canvasPos,canvas)
+	{
+		var radius = (this.discSize - CONFIG.CELL_MARGIN ) / 2;
+		var center = this.cellCenterFrom(canvasPos);
+		this.circle = new fabric.Circle({ 	top:  center.y, 
+											left: center.x, 
+											radius: radius,
+											fill: this.discFill() });
+		canvas.add(this.circle);
+		var textLoc = this.textLocationFrom(canvasPos);
+		this.text = new fabric.Text(this.number,{	top : textLoc.y, left : textLoc.x,
+										fontFamily : 'CA_BND_Web_Bold_700', fontSize : 25, 
+										textAlign:'center', fill:'black'});
+		if (this.state == DISC_STATE.VISIBLE)
+			canvas.add(this.text);
+	},
+	remove : function(canvas) {
+		if (canvas && this.isDrawn())
+		{
+			canvas.remove(this.circle);
+			if (this.text != null)
+				canvas.remove(this.text);
+		}
+		this.circle = null;
+	},
+	isDrawn : function () { return this.circle ? true : false; },
+	
+	putAt : function(canvasPos,canvas) {
+		if (this.isDrawn())
+			this.moveTo(canvasPos);
+		else
+			this.drawAt(canvasPos,canvas);
+	},
+	
+	redrawAt : function(canvasPos,canvas) {
+		this.remove(canvas);
+		this.drawAt(canvasPos,canvas);
+	},
+	
+	cellCenterFrom : function(canvasPos) {
+		var radius = (this.discSize - CONFIG.CELL_MARGIN ) / 2;
+		return {x : canvasPos.x + radius + (CONFIG.CELL_MARGIN ), y : canvasPos.y + radius + (CONFIG.CELL_MARGIN ) };
+	},
+	textLocationFrom : function(canvasPos) {
+		var ret = this.cellCenterFrom(canvasPos);
+		return {x : ret.x + 4, y : ret.y};
+	},
+	discFill : function() {
+		if (this.state == DISC_STATE.HARD)
+			return 'gray';
+		else if (this.state == DISC_STATE.WEAK)
+			return 'lightgray';
+		else 
+		{
+			var colors = ['lightgreen','yellow','orange','red','purple','cyan','lightblue'];
+			var chosenColor = colors[(this.number-1) % colors.length];
+			return chosenColor;
+		}
+	},
+	moveTo : function(canvasPos){
+		if (!this.isDrawn())
+			throw 'Disc is not drawn on the canvas - can\'t move it';
+		var center = this.cellCenterFrom(canvasPos);
+		this.circle.setTop(center.y);
+		this.circle.setLeft(center.x);
+		var textLoc = this.textLocationFrom(canvasPos);
+		this.text.setTop(textLoc.y);
+		this.text.setLeft(textLoc.x);
+	},
+	
+	highlightOn : function(score,canvas) {
+		if (this.isDrawn())
+		{
+			var c = this.circle;
+			c.strokeWidth = CONFIG.HIGHLIGHT_STROKE_WIDTH;
+			c.stroke = CONFIG.HIGHLIGHT_STROKE;
+			
+			if (score)
+			{
+				var scoreLocation = { y : this.circle.top - this.circle.radius, x : this.circle.left - this.circle.radius };
+				this.scoreText = new fabric.Text(score,{ top : scoreLocation.y, left : scoreLocation.x,
+										fontFamily : 'CA_BND_Web_Bold_700', fontSize : 15, 
+										textAlign:'center', fill:'red'});
+				canvas.add(this.scoreText);
+			}
+		}
+	},
+	
+	highlightOff : function(canvas) {
+		if (this.isDrawn())
+		{
+			var c = this.circle;
+			c.strokeWidth = CONFIG.HIGHLIGHT_STROKE_WIDTH;
+			c.stroke = '';
+			//dbg('disc.highlightOff. Score Text: ' + this.scoreText);
+			if (this.scoreText)
+			{
+				canvas.remove(this.scoreText);
+				this.scoreText = null;
+			}
+			
+		}
+	},
+	
+	degrade : function()
+	{
+		if (this.state == DISC_STATE.HARD)
+			this.state = DISC_STATE.WEAK;
+		else this.state = DISC_STATE.VISIBLE;
+	}
+	
+});</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Index</a></h2><h3>Global</h3><ul><li><a href="global.html#Disc">Disc</a></li><li><a href="global.html#DISC_STATE">DISC_STATE</a></li><li><a href="global.html#drawAt">drawAt</a></li><li><a href="global.html#initialize">initialize</a></li></ul>
+</nav>
+
+<br clear="both">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Sat Mar 30 2013 20:08:20 GMT+0300 (IDT)
+</footer>
+
+<script> prettyPrint(); </script>
+</body>
+</html>
