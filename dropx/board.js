@@ -12,14 +12,14 @@ var Board = Class.create ({
 			$R(0,this.size).each(function() { a.push(null); });
 			this.cells.push(a);
 		},this);
-		
+
 	},
-	
+
 	setDisc : function (disc,row,col) {
 		this.cells[row][col] = disc || null;
 		this.changedCell({row : row, col : col});
 	},
-	
+
 	setDiscAt : function (disc, cell) {
 		if (!cell) return;
 		if (cell.row > this.size || cell.col >= this.size)
@@ -27,53 +27,53 @@ var Board = Class.create ({
 		else
 			this.setDisc(disc,cell.row,cell.col);
 	},
-	
+
 	removeDiscAt : function(cell) {
 		this.setDisc(null,cell.row,cell.col);
 	},
-	
+
 	discAt : function(row,col) {
 		return this.cells[row][col] || null;
 	},
-	
+
 	discAtCell : function (cell) {
 		if (!cell) return null;
 		return this.discAt(cell.row,cell.col);
 	},
-	
+
 	cellBelow : function (cellPos)
 	{
 		if (cellPos.row == this.size) return null;
 		return {row : cellPos.row + 1, col : cellPos.col};
 	},
-	
+
 	findDiscsToBlowInColumn : function(col) {
 		var column = [];
 		//rows are 1-based, so we start from 1
 		$R(1,this.size).each(function(r) {
 			column.push(this.cells[r][col]);
 		},this);
-		
+
 		var ranges = findAllConsecutiveDiscRanges(column);
 		var retRows = [];
 		ranges.each(function(range) {
 			var rangeSize = range.end - range.start + 1;
 			//rows are 1-based, but the column variable is a 0-based array (which took the discs starting from row #1)
 			var row = range.start;
-			while (row < (range.end + 1)) 
+			while (row < (range.end + 1))
 			{
 				var rowInBoard = row + 1; //converting back to row coordinates which are 1-based.
-				var disc = this.discAt(rowInBoard,col); 
+				var disc = this.discAt(rowInBoard,col);
 				if (disc.state == DISC_STATE.VISIBLE && disc.number == rangeSize)
 					retRows.push(rowInBoard);
 				row++;
 			}
 		},this);
-		
+
 		return retRows;
 	},
 	findDiscsToBlowInRow : function (row) {
-		
+
 		var ranges = findAllConsecutiveDiscRanges(this.cells[row]);
 		var retColumns = [];
 		ranges.each(function (range) {
@@ -87,11 +87,11 @@ var Board = Class.create ({
 				col++;
 			}
 		},this);
-		
+
 		return retColumns;
 
 	},
-	
+
 	cellsNear : function (cell) {
 		return [
 			{ row : rowAbove(cell.row), col : cell.col}, 			//cell above
@@ -100,7 +100,7 @@ var Board = Class.create ({
 			{ row : cell.row, col : leftOf(cell.col,this.size) }	//cell to left
 		];
 	},
-	
+
 	firstVacantCellBelow : function(cell) {
 		var c = this.cellBelow(cell), lastCell = cell;
 		while (c != null)
@@ -112,7 +112,7 @@ var Board = Class.create ({
 		}
 		return lastCell;
 	},
-	
+
 	findAllCellsToBlow : function() {
 		var retCells = []
 		for (var row = 1; row <= this.size; row++)
@@ -120,16 +120,16 @@ var Board = Class.create ({
 			var columns = this.findDiscsToBlowInRow(row);
 			columns.each(function (col) { retCells.push({row : row, col : col}); });
 		}
-		
+
 		for (var col = 0; col < this.size; col++)
 		{
 			var rows = this.findDiscsToBlowInColumn(col);
 			rows.each(function (r) { retCells.push({row : r, col : col}); }); //TODO: might create duplicates here, must solve this
 		}
-		
+
 		return retCells;
 	},
-	
+
 	nonVacantCellsAbove : function (cell) {
 		var retCells = [];
 		var upperMostRow = 1;
@@ -141,20 +141,28 @@ var Board = Class.create ({
 		}
 		return retCells;
 	},
-	
+
 	mark : function() {
 		this.changedCells = [];
 	},
-	
+
 	changedCell : function (cell) {
 		if (cell && this.changedCells)
 			this.changedCells.push(cell);
 	},
-	
-	modifiedCellsSinceLastMark : function() { return this.changedCells; }
-	
 
-/*	
+	modifiedCellsSinceLastMark : function() { return this.changedCells; }
+
+	, insertDiscsInBottom : function(discs) {
+			$R(0,this.size).each(function(col) {
+				var cellsInCol = this.nonVacantCellsAbove({row : this.size, col : col})
+				/*
+				 	naive: for each cell in the column, sorted from top - move it one row up
+					Then insert the new discs (matching 'col') in the bottom row
+				*/
+			}, this)
+	}
+/*
 	moveDiscAtCellOneRowDown : function(cell,game)
 	{
 		var disc = this.discAtCell(cell);
@@ -164,9 +172,9 @@ var Board = Class.create ({
 			var newCell = {row : cell.row + 1, col : cell.col};
 			this.removeDiscAt(cell);
 			this.setDisc(disc,newCell.row, newCell.col);
-			
+
 			RAISE(new CellChangeEvent(newCell,game),20);
 		}
 	}
-*/	
+*/
 });
