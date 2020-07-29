@@ -199,6 +199,7 @@ var DropXGame = Class.create({
 		this.initializeGame();
 		this.stabilizeBoard();
 		this.newInputDisc(this.randomizeDisc());
+		this.newLineCountdownCallback(this.discsToDropUntilLineRise);
 	},
 
 	size : function() { return this.board.size; },
