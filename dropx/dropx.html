@@ -30,7 +30,7 @@ textarea {
 
 var game = null;
 var keyboard = null;
-var GAME_SIZE = 7;
+var GAME_SIZE = Math.min(7,CONFIG.GAME_SIZE_UPPER_BOUND);
 function setupKeyboard()
 {
 	keyboard = new Kibo();
@@ -45,7 +45,7 @@ function setup()
 		$('devDiv').style.display = 'block';
 		
 	setupKeyboard();
-	game = new DropXGame(GAME_SIZE,$('cnvsMain'));
+	game = new DropXGame(GAME_SIZE,$('cnvsMain'),updateNewLineCountdown);
 	game.init();
 	
 	
@@ -54,6 +54,11 @@ function setup()
 function clearDebugConsole()
 {
 	$('txtDbg').value = '';
+}
+
+function updateNewLineCountdown(newValue)
+{
+	$('newLineCountdown').textContent = newValue;
 }
 
 </script>
@@ -65,6 +70,9 @@ function clearDebugConsole()
 <canvas id="cnvsMain" width="650" height="500">
 	
 </canvas>
+</div>
+<div align="center">
+	Discs to new line: <span id="newLineCountdown"></span>
 </div>
 
 <div id="devDiv" style="display : none">

@@ -6,7 +6,7 @@ var MIN_DISC_NUMBER = 1;
 var DISCS_TO_LINE_RISE = 3;
 
 var DropXGame = Class.create({
-	initialize : function (_boardSize,_canvas) {
+	initialize : function (_boardSize,_canvas,_countDownCallback) {
 		//TODO: validate input
 		this.board = new Board(_boardSize);
 		this.currentInputDisc = null;
@@ -16,12 +16,14 @@ var DropXGame = Class.create({
 		this.canvas = new fabric.StaticCanvas(_canvas);
 		this.blownCells = [];
 		this.discsToDropUntilLineRise = DISCS_TO_LINE_RISE;
-
+		this.newLineCountdownCallback = _countDownCallback;
 	},
 
 	shouldInsertLine : function() {
-		this.discsToDropUntilLineRise <= 0
+		return this.discsToDropUntilLineRise <= 0;
 	}
+
+	, countDiscDropped : function() { this.discsToDropUntilLineRise--; }
 
 	, resetNewLineCounter : function() { this.discsToDropUntilLineRise = DISCS_TO_LINE_RISE; }
 
@@ -80,6 +82,13 @@ var DropXGame = Class.create({
 			var lastPos = this.inputDiscPos();
 			this.dropDiscAndStabilize(inpDisc,lastPos);
 			this.newInputDisc(this.randomizeDisc());
+			this.countDiscDropped();
+			if (this.shouldInsertLine())
+			{
+					this.newBottomLine();
+					this.resetNewLineCounter();
+			}
+			this.newLineCountdownCallback(this.discsToDropUntilLineRise);
 		}
 
 	},
@@ -100,14 +109,6 @@ var DropXGame = Class.create({
 		this.dropDisc(disc,lastPos);
 		this.redrawBoard();
 		this.stabilizeBoard();
-		if (this.shouldInsertLine())
-		{
-				this.insertNewLine()
-				this.resetNewLineCounter();
-		}
-	}
-
-	, insertNewLine : function() {
 		
 	}
 
@@ -258,6 +259,32 @@ var DropXGame = Class.create({
 		var state = randomBetween(DISC_STATE.VISIBLE,DISC_STATE.HARD); //the size (and values) of DISC_STATES
 		var disc = new Disc(num,state);
 		return disc;
+	}
+
+	, newBottomLine : function() {
+		//check that top line is empty
+		if (this.hasDiscsAtTopRow())
+			this.gameOver();
+		else
+		{
+			//create discs
+			let discs = [];
+			$R(0,this.size()-1).each(function() {
+				discs.push(this.randomizeDisc());
+			},this);
+			//insert discs to board
+			this.board.insertDiscsFromBottom(discs);
+			// redraw
+			this.redrawBoard();
+		}
+	}
+
+	, hasDiscsAtTopRow : function() {
+		return this.board.row(1).length > 0; //!isEmpty ?
+	}
+
+	, gameOver : function() {
+		alert("Game Over"); //placeholder
 	}
 
 });

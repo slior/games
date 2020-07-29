@@ -153,28 +153,38 @@ var Board = Class.create ({
 
 	modifiedCellsSinceLastMark : function() { return this.changedCells; }
 
-	, insertDiscsInBottom : function(discs) {
+	, insertDiscsFromBottom : function(discs) {
 			$R(0,this.size).each(function(col) {
-				var cellsInCol = this.nonVacantCellsAbove({row : this.size, col : col})
-				/*
-				 	naive: for each cell in the column, sorted from top - move it one row up
-					Then insert the new discs (matching 'col') in the bottom row
-				*/
-			}, this)
+				$R(2,this.size).each(function(row) { //going top to bottom, move all discs up one row
+					this.moveDiscOneCellUp({row : row,col : col}) //this takes care of empty cells as well.
+				},this);
+
+				this.setDisc(discs[col],this.size,col); //insert in this column, at the bottom row
+			}, this);
 	}
-/*
-	moveDiscAtCellOneRowDown : function(cell,game)
-	{
-		var disc = this.discAtCell(cell);
+
+	, moveDiscOneCellUp : function(fromCell) {
+		if (fromCell.row <= 1) return; //should actually signal this error condition somehow
+		let disc = this.discAtCell(fromCell)
 		if (disc != null)
 		{
-			//move the cell on the board
-			var newCell = {row : cell.row + 1, col : cell.col};
-			this.removeDiscAt(cell);
-			this.setDisc(disc,newCell.row, newCell.col);
+			let newCell = {row : fromCell.row - 1, col : fromCell.col}
+			this.removeDiscAt(fromCell)
+			this.setDiscAt(disc,newCell)
 
-			RAISE(new CellChangeEvent(newCell,game),20);
+			this.changedCell(newCell);
 		}
+		
 	}
-*/
+
+	, row : function(rowInd) {
+		let ret = []
+		$R(0,this.size)
+			.each(function(colInd) {
+				let d = this.discAt(rowInd,colInd);
+				if (d != null) ret.push(d);
+			},this)
+		return ret;
+	}
+
 });

@@ -11,5 +11,6 @@ var CONFIG = {
 	CELL_MARGIN: 4,
 	GRID_LINE_WIDTH : 1,
 	GRID_LINE_COLOR : 'black'
+	, GAME_SIZE_UPPER_BOUND : 20
 	
 };
