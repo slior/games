@@ -1,9 +1,9 @@
 
-//Assumes prototype.js is loaded
+//Assumes prototype.js,config.js is loaded
 
 var MAX_INITIAL_GAME_HEIGHT = 2;
 var MIN_DISC_NUMBER = 1;
-var DISCS_TO_LINE_RISE = 3;
+// var DISCS_TO_LINE_RISE = 
 
 var DropXGame = Class.create({
 	initialize : function (_boardSize,_canvas,_countDownCallback) {
@@ -15,7 +15,8 @@ var DropXGame = Class.create({
 		_canvas.height = (this.size() + 1) * CONFIG.CELL_SIZE;
 		this.canvas = new fabric.StaticCanvas(_canvas);
 		this.blownCells = [];
-		this.discsToDropUntilLineRise = DISCS_TO_LINE_RISE;
+		this.discsToLineRise = CONFIG.MAX_DISCS_TO_NEW_LINE || _boardSize; //default of board size in case no value is given in configuration
+		this.discsToDropUntilLineRise = this.discsToLineRise;
 		this.newLineCountdownCallback = _countDownCallback;
 	},
 
@@ -25,7 +26,10 @@ var DropXGame = Class.create({
 
 	, countDiscDropped : function() { this.discsToDropUntilLineRise--; }
 
-	, resetNewLineCounter : function() { this.discsToDropUntilLineRise = DISCS_TO_LINE_RISE; }
+	, resetNewLineCounter : function() { 
+		this.discsToLineRise = Math.max(1,this.discsToLineRise-1); //reduce the time to a new line every time, to a minimum of 1.
+		this.discsToDropUntilLineRise = this.discsToLineRise;
+	}
 
 	, draw : function() {
 		this.drawGrid();
