@@ -40,7 +40,9 @@ body {
 
 var game = null;
 var keyboard = null;
-var GAME_SIZE = Math.min(7,CONFIG.GAME_SIZE_UPPER_BOUND);
+const SIZE_PARAM_NAME = "size";
+const DEFAULT_GAME_SIZE = 7;
+
 function setupKeyboard()
 {
 	keyboard = new Kibo();
@@ -56,10 +58,25 @@ function setup()
 		
 	$('gameOverMsg').hide();
 	setupKeyboard();
-	game = new DropXGame(GAME_SIZE,$('cnvsMain'),updateNewLineCountdown,gameOverCallback);
+	game = new DropXGame(resolveGameSize(),$('cnvsMain'),updateNewLineCountdown,gameOverCallback);
 	game.init();
-	
-	
+}
+
+
+/**
+ * Resolve the game size.
+ * Order of priority:
+ * 1. parameter in URL
+ * 2. DEFAULT_GAME_SIZE.
+ * 
+ * In any case, it will be with the configured upper bound (from CONFIG)
+ */
+function resolveGameSize()
+{
+	let params = new URLSearchParams(window.location.search);
+	let size = (params.has(SIZE_PARAM_NAME) && !isNaN(params.get(SIZE_PARAM_NAME))) ? 
+				params.get(SIZE_PARAM_NAME)*1 : DEFAULT_GAME_SIZE;
+	return Math.min(size,CONFIG.GAME_SIZE_UPPER_BOUND || DEFAULT_GAME_SIZE);
 }
 
 function clearDebugConsole()
