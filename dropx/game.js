@@ -21,9 +21,14 @@ var DropXGame = Class.create({
 		this.gameOver = false;
 		this.gameOverCallback = _gameOverCallback;
 		this.scoreNotificationCallback = _scoreNotificationCallback;
+		this._isStabilizing = false;
 	},
 
-	shouldInsertLine : function() {
+	isStabilizing : function() { return this._isStabilizing; }
+
+	, setIsStabilizing : function(v) { this._isStabilizing = v; }
+
+	, shouldInsertLine : function() {
 		return this.discsToDropUntilLineRise <= 0;
 	}
 
@@ -124,6 +129,8 @@ var DropXGame = Class.create({
 	}
 
 	, stabilizeBoard : function(postStabilizationCallback,skipScoreUpdate) {
+
+		this.setIsStabilizing(true);
 		var cellsToBlow = this.board.findAllCellsToBlow();
 		let phasedCellBlownCount = [];
 
@@ -178,6 +185,7 @@ var DropXGame = Class.create({
 			else //we're done.
 			{
 				if (!skipScoreUpdate) this.calculateScore(phasedCellBlownCount)
+				this.setIsStabilizing(false);
 				if (postStabilizationCallback)
 					postStabilizationCallback();
 			}

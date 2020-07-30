@@ -46,9 +46,9 @@ const DEFAULT_GAME_SIZE = 7;
 function setupKeyboard()
 {
 	keyboard = new Kibo();
-	keyboard.up('down',function(evt) { if (!game.isOver()) game.dropInputDisc(); } );
-	keyboard.up('right',function(evt) { if (!game.isOver()) game.inputDiscRight(); } );
-	keyboard.up('left',function(evt) { if (!game.isOver()) game.inputDiscLeft(); } );
+	keyboard.up('down',function(evt) { if (!game.isOver() && !game.isStabilizing()) game.dropInputDisc(); } );
+	keyboard.up('right',function(evt) { if (!game.isOver() && !game.isStabilizing()) game.inputDiscRight(); } );
+	keyboard.up('left',function(evt) { if (!game.isOver() && !game.isStabilizing()) game.inputDiscLeft(); } );
 }
 
 function setup()
