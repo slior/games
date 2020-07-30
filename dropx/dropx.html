@@ -17,6 +17,12 @@ body {
 	font-family : Arial;
 }
 
+#gameOverMsg {
+	font-size: xx-large;
+	color: red;
+	border : 2px solid red;
+}
+
 </style>
 
 <script type="text/javascript" src="config.js" ></script> 
@@ -48,8 +54,9 @@ function setup()
 	if (CONFIG.DEV_MODE)
 		$('devDiv').style.display = 'block';
 		
+	$('gameOverMsg').hide();
 	setupKeyboard();
-	game = new DropXGame(GAME_SIZE,$('cnvsMain'),updateNewLineCountdown);
+	game = new DropXGame(GAME_SIZE,$('cnvsMain'),updateNewLineCountdown,gameOverCallback);
 	game.init();
 	
 	
@@ -65,6 +72,11 @@ function updateNewLineCountdown(newValue)
 	$('newLineCountdown').textContent = newValue;
 }
 
+function gameOverCallback()
+{
+	$('gameOverMsg').show();
+}
+
 </script>
 </head>
 
@@ -74,6 +86,11 @@ function updateNewLineCountdown(newValue)
 <canvas id="cnvsMain" width="650" height="500">
 	
 </canvas>
+
+<div id="gameOverMsg">
+	GAME OVER
+</div>
+
 </div>
 <div align="center">
 	Discs to new line: <span id="newLineCountdown"></span>

@@ -6,7 +6,7 @@ var MIN_DISC_NUMBER = 1;
 // var DISCS_TO_LINE_RISE = 
 
 var DropXGame = Class.create({
-	initialize : function (_boardSize,_canvas,_countDownCallback) {
+	initialize : function (_boardSize,_canvas,_countDownCallback,_gameOverCallback) {
 		//TODO: validate input
 		this.board = new Board(_boardSize);
 		this.currentInputDisc = null;
@@ -19,6 +19,7 @@ var DropXGame = Class.create({
 		this.discsToDropUntilLineRise = this.discsToLineRise;
 		this.newLineCountdownCallback = _countDownCallback;
 		this.gameOver = false;
+		this.gameOverCallback = _gameOverCallback;
 	},
 
 	shouldInsertLine : function() {
@@ -298,7 +299,7 @@ var DropXGame = Class.create({
 	, setGameOver : function() {
 		this.gameOver = true;
 		this.currentInputDisc = null;
-		alert("Game Over"); //placeholder
+		this.gameOverCallback();
 	}
 
 	, isOver : function() { return this.gameOver; }
