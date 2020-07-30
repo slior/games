@@ -123,7 +123,7 @@ var DropXGame = Class.create({
 		
 	}
 
-	, stabilizeBoard : function(postStabilizationCallback) {
+	, stabilizeBoard : function(postStabilizationCallback,skipScoreUpdate) {
 		var cellsToBlow = this.board.findAllCellsToBlow();
 		let phasedCellBlownCount = [];
 
@@ -177,7 +177,7 @@ var DropXGame = Class.create({
 				ENQ(cycle,this);	//repeat until done
 			else //we're done.
 			{
-				this.calculateScore(phasedCellBlownCount)
+				if (!skipScoreUpdate) this.calculateScore(phasedCellBlownCount)
 				if (postStabilizationCallback)
 					postStabilizationCallback();
 			}
@@ -227,7 +227,7 @@ var DropXGame = Class.create({
 	init : function() {
 		this.draw();
 		this.initializeGame();
-		this.stabilizeBoard();
+		this.stabilizeBoard(null,true); //TODO: this parameter passing is ugly, fix this.
 		this.newInputDisc(this.randomizeDisc());
 		this.newLineCountdownCallback(this.discsToDropUntilLineRise);
 	},
