@@ -18,6 +18,7 @@ var DropXGame = Class.create({
 		this.discsToLineRise = CONFIG.MAX_DISCS_TO_NEW_LINE || _boardSize; //default of board size in case no value is given in configuration
 		this.discsToDropUntilLineRise = this.discsToLineRise;
 		this.newLineCountdownCallback = _countDownCallback;
+		this.gameOver = false;
 	},
 
 	shouldInsertLine : function() {
@@ -66,7 +67,7 @@ var DropXGame = Class.create({
 
 	drawInputDisc : function() {
 		var canvasPos = this.cellToCanvas(this.inputDiscPos());
-		this.inputDisc().drawAt(canvasPos,this.canvas);
+		if (this.inputDisc() != null) this.inputDisc().drawAt(canvasPos,this.canvas);
 	},
 
 	cellToCanvas : function (cell) { return {x : this.boardXToCanvasX(cell.col) + CONFIG.CELL_MARGIN/2, y : this.boardYToCanvasY(cell.row) + CONFIG.CELL_MARGIN/2 }; },
@@ -81,19 +82,23 @@ var DropXGame = Class.create({
 
 	dropInputDisc : function() {
 		var inpDisc = this.inputDisc();
-		if (inpDisc)
-		{
-			var lastPos = this.inputDiscPos();
-			this.dropDiscAndStabilize(inpDisc,lastPos);
-			this.newInputDisc(this.randomizeDisc());
-			this.countDiscDropped();
-			if (this.shouldInsertLine())
+
+		let postStabilizationSequence = function() {
+			if (!this.isOver())
 			{
+				this.newInputDisc(this.randomizeDisc());
+				this.countDiscDropped();
+				if (this.shouldInsertLine())
+				{
 					this.newBottomLine();
 					this.resetNewLineCounter();
+				}
+				this.newLineCountdownCallback(this.discsToDropUntilLineRise);
 			}
-			this.newLineCountdownCallback(this.discsToDropUntilLineRise);
 		}
+
+		if (inpDisc)
+			this.dropDiscAndStabilize(inpDisc,this.inputDiscPos(),postStabilizationSequence.bind(this));
 
 	},
 
@@ -109,14 +114,14 @@ var DropXGame = Class.create({
 		}
 	},
 
-	dropDiscAndStabilize : function (disc,lastPos) {
+	dropDiscAndStabilize : function (disc,lastPos, postStabilizationCallback) {
 		this.dropDisc(disc,lastPos);
 		this.redrawBoard();
-		this.stabilizeBoard();
+		this.stabilizeBoard(postStabilizationCallback);
 		
 	}
 
-	, stabilizeBoard : function() {
+	, stabilizeBoard : function(postStabilizationCallback) {
 		var cellsToBlow = this.board.findAllCellsToBlow();
 		var boardStabilizationSequence =
 				highlightCellsToBlow.bind(this)
@@ -163,7 +168,10 @@ var DropXGame = Class.create({
 		function calcNextToBlowAndScheduleAnotherCycle()
 		{
 			cellsToBlow = this.board.findAllCellsToBlow();
-			if (cellsToBlow.length > 0) ENQ(cycle,this);	//repeat until done
+			if (cellsToBlow.length > 0) 
+				ENQ(cycle,this);	//repeat until done
+			else if (postStabilizationCallback)
+					postStabilizationCallback();
 		}
 
 	},
@@ -220,7 +228,7 @@ var DropXGame = Class.create({
 
 	moveInputDiscRight : function()
 	{
-		if (this.currentInputDisc != null )
+		if (this.inputDisc() != null )
 		{
 			this.inputDiscPosition.col = Math.min(this.size()-1,this.inputDiscPosition.col + 1);
 			this.board.setDisc(this.currentInputDisc,this.inputDiscPosition.row,this.inputDiscPosition.col);
@@ -230,7 +238,7 @@ var DropXGame = Class.create({
 
 	moveInputDiscLeft : function()
 	{
-		if (this.currentInputDisc != null )
+		if (this.inputDisc() != null )
 		{
 			this.inputDiscPosition.col = Math.max(0,this.inputDiscPos().col - 1);
 			this.board.setDisc(this.currentInputDisc,this.inputDiscPosition.row,this.inputDiscPosition.col);
@@ -269,7 +277,7 @@ var DropXGame = Class.create({
 	, newBottomLine : function() {
 		//check that top line is empty
 		if (this.hasDiscsAtTopRow())
-			this.gameOver();
+			this.setGameOver();
 		else
 		{
 			//create discs
@@ -277,10 +285,9 @@ var DropXGame = Class.create({
 			$R(0,this.size()-1).each(function() {
 				discs.push(this.randomizeDisc());
 			},this);
-			//insert discs to board
 			this.board.insertDiscsFromBottom(discs);
-			// redraw
 			this.redrawBoard();
+			this.stabilizeBoard();
 		}
 	}
 
@@ -288,8 +295,12 @@ var DropXGame = Class.create({
 		return this.board.row(1).length > 0; //!isEmpty ?
 	}
 
-	, gameOver : function() {
+	, setGameOver : function() {
+		this.gameOver = true;
+		this.currentInputDisc = null;
 		alert("Game Over"); //placeholder
 	}
+
+	, isOver : function() { return this.gameOver; }
 
 });

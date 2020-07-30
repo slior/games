@@ -38,9 +38,9 @@ var GAME_SIZE = Math.min(7,CONFIG.GAME_SIZE_UPPER_BOUND);
 function setupKeyboard()
 {
 	keyboard = new Kibo();
-	keyboard.up('down',function(evt) { game.dropInputDisc(); } );
-	keyboard.up('right',function(evt) { game.inputDiscRight(); } );
-	keyboard.up('left',function(evt) { game.inputDiscLeft(); } );
+	keyboard.up('down',function(evt) { if (!game.isOver()) game.dropInputDisc(); } );
+	keyboard.up('right',function(evt) { if (!game.isOver()) game.inputDiscRight(); } );
+	keyboard.up('left',function(evt) { if (!game.isOver()) game.inputDiscLeft(); } );
 }
 
 function setup()

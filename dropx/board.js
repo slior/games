@@ -154,7 +154,7 @@ var Board = Class.create ({
 	modifiedCellsSinceLastMark : function() { return this.changedCells; }
 
 	, insertDiscsFromBottom : function(discs) {
-			$R(0,this.size).each(function(col) {
+			$R(0,this.size-1).each(function(col) {
 				$R(2,this.size).each(function(row) { //going top to bottom, move all discs up one row
 					this.moveDiscOneCellUp({row : row,col : col}) //this takes care of empty cells as well.
 				},this);
