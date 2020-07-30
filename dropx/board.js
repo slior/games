@@ -18,11 +18,16 @@ var Board = Class.create ({
 	setDisc : function (disc,row,col) {
 		this.cells[row][col] = disc || null;
 		this.changedCell({row : row, col : col});
-	},
+	}
 
-	setDiscAt : function (disc, cell) {
+	, upperMostRow : function() { return 1; }
+	, bottomRow : function() { return this.size; }
+	, leftMostCol : function() { return 0; }
+	, rightMostCol : function() { return this.size-1; }
+
+	, setDiscAt : function (disc, cell) {
 		if (!cell) return;
-		if (cell.row > this.size || cell.col >= this.size)
+		if (cell.row > this.bottomRow() || cell.col >= this.rightMostCol()+1)
 			throw 'Illegal cell to put disc in: ' + cell.row + ',' + cell.col;
 		else
 			this.setDisc(disc,cell.row,cell.col);
@@ -43,14 +48,13 @@ var Board = Class.create ({
 
 	cellBelow : function (cellPos)
 	{
-		if (cellPos.row == this.size) return null;
+		if (cellPos.row == this.bottomRow()) return null;
 		return {row : cellPos.row + 1, col : cellPos.col};
 	},
 
 	findDiscsToBlowInColumn : function(col) {
 		var column = [];
-		//rows are 1-based, so we start from 1
-		$R(1,this.size).each(function(r) {
+		$R(this.upperMostRow(),this.bottomRow()).each(function(r) {
 			column.push(this.cells[r][col]);
 		},this);
 
@@ -115,13 +119,13 @@ var Board = Class.create ({
 
 	findAllCellsToBlow : function() {
 		var retCells = []
-		for (var row = 1; row <= this.size; row++)
+		for (var row = this.upperMostRow(); row <= this.bottomRow(); row++)
 		{
 			var columns = this.findDiscsToBlowInRow(row);
 			columns.each(function (col) { retCells.push({row : row, col : col}); });
 		}
 
-		for (var col = 0; col < this.size; col++)
+		for (var col = this.leftMostCol(); col <= this.rightMostCol(); col++)
 		{
 			var rows = this.findDiscsToBlowInColumn(col);
 			rows.each(function (r) { retCells.push({row : r, col : col}); }); //TODO: might create duplicates here, must solve this
@@ -132,8 +136,7 @@ var Board = Class.create ({
 
 	nonVacantCellsAbove : function (cell) {
 		var retCells = [];
-		var upperMostRow = 1;
-		for (var row = cell.row - 1; row >= upperMostRow; row--)
+		for (var row = cell.row - 1; row >= this.upperMostRow(); row--)
 		{
 			var inspectedCell = {row : row, col : cell.col};
 			var disc = this.discAtCell(inspectedCell);
@@ -154,8 +157,8 @@ var Board = Class.create ({
 	modifiedCellsSinceLastMark : function() { return this.changedCells; }
 
 	, insertDiscsFromBottom : function(discs) {
-			$R(0,this.size-1).each(function(col) {
-				$R(2,this.size).each(function(row) { //going top to bottom, move all discs up one row
+			$R(this.leftMostCol(),this.rightMostCol()).each(function(col) {
+				$R(this.upperMostRow()+1,this.bottomRow()).each(function(row) { //going top to bottom, from 2nd row, move all discs up one row
 					this.moveDiscOneCellUp({row : row,col : col}) //this takes care of empty cells as well.
 				},this);
 
@@ -164,7 +167,7 @@ var Board = Class.create ({
 	}
 
 	, moveDiscOneCellUp : function(fromCell) {
-		if (fromCell.row <= 1) return; //should actually signal this error condition somehow
+		if (fromCell.row <= this.upperMostRow()) return; //should actually signal this error condition somehow
 		let disc = this.discAtCell(fromCell)
 		if (disc != null)
 		{
@@ -179,7 +182,7 @@ var Board = Class.create ({
 
 	, row : function(rowInd) {
 		let ret = []
-		$R(0,this.size)
+		$R(this.leftMostCol(),this.rightMostCol())
 			.each(function(colInd) {
 				let d = this.discAt(rowInd,colInd);
 				if (d != null) ret.push(d);
