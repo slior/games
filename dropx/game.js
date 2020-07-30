@@ -6,7 +6,7 @@ var MIN_DISC_NUMBER = 1;
 // var DISCS_TO_LINE_RISE = 
 
 var DropXGame = Class.create({
-	initialize : function (_boardSize,_canvas,_countDownCallback,_gameOverCallback) {
+	initialize : function (_boardSize,_canvas,_countDownCallback,_gameOverCallback,_scoreNotificationCallback) {
 		//TODO: validate input
 		this.board = new Board(_boardSize);
 		this.currentInputDisc = null;
@@ -20,6 +20,7 @@ var DropXGame = Class.create({
 		this.newLineCountdownCallback = _countDownCallback;
 		this.gameOver = false;
 		this.gameOverCallback = _gameOverCallback;
+		this.scoreNotificationCallback = _scoreNotificationCallback;
 	},
 
 	shouldInsertLine : function() {
@@ -124,6 +125,8 @@ var DropXGame = Class.create({
 
 	, stabilizeBoard : function(postStabilizationCallback) {
 		var cellsToBlow = this.board.findAllCellsToBlow();
+		let phasedCellBlownCount = [];
+
 		var boardStabilizationSequence =
 				highlightCellsToBlow.bind(this)
 				.thenWaitAndInvoke(
@@ -140,6 +143,7 @@ var DropXGame = Class.create({
 		{
 			this.board.mark();
 			cellsToBlow.each( function (cell) { var disc = this.board.discAtCell(cell); if (disc) disc.toBlow = true; }, this);
+			phasedCellBlownCount.push(cellsToBlow.length);
 			boardStabilizationSequence();
 		}
 
@@ -171,13 +175,26 @@ var DropXGame = Class.create({
 			cellsToBlow = this.board.findAllCellsToBlow();
 			if (cellsToBlow.length > 0) 
 				ENQ(cycle,this);	//repeat until done
-			else if (postStabilizationCallback)
+			else //we're done.
+			{
+				this.calculateScore(phasedCellBlownCount)
+				if (postStabilizationCallback)
 					postStabilizationCallback();
+			}
 		}
 
-	},
+	}
+	
+	, calculateScore : function(phasedCellCount) {
+		var total = 0;
+		for (i = 0; i < phasedCellCount.length; i++)
+			total += CONFIG.SCORE_MULTIPLIER * (i+1) * Math.max(phasedCellCount[i],0)
+		this.scoreNotificationCallback(total);
+	}
 
-	redrawBoard : function()
+
+
+	, redrawBoard : function()
 	{
 		var cells = this.board.modifiedCellsSinceLastMark();
 		cells.each (function (cell) {

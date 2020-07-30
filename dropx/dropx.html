@@ -58,10 +58,16 @@ function setup()
 		
 	$('gameOverMsg').hide();
 	setupKeyboard();
-	game = new DropXGame(resolveGameSize(),$('cnvsMain'),updateNewLineCountdown,gameOverCallback);
+	game = new DropXGame(resolveGameSize(),$('cnvsMain'),updateNewLineCountdown,gameOverCallback,scoreNotification);
 	game.init();
 }
 
+
+function scoreNotification(additionalScore)
+{
+	let currentScore = ($('score').textContent * 1) || 0;
+	$('score').textContent = currentScore + (additionalScore*1);
+}
 
 /**
  * Resolve the game size.
@@ -111,6 +117,10 @@ function gameOverCallback()
 </div>
 <div align="center">
 	Discs to new line: <span id="newLineCountdown"></span>
+</div>
+
+<div align="center">
+	Score: <span id="score">0</span>
 </div>
 
 <div id="devDiv" style="display : none">
