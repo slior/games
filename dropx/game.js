@@ -3,7 +3,6 @@
 
 var MAX_INITIAL_GAME_HEIGHT = 2;
 var MIN_DISC_NUMBER = 1;
-// var DISCS_TO_LINE_RISE = 
 
 var DropXGame = Class.create({
 	initialize : function (_boardSize,_canvas,_countDownCallback,_gameOverCallback,_scoreNotificationCallback) {
@@ -22,9 +21,17 @@ var DropXGame = Class.create({
 		this.gameOverCallback = _gameOverCallback;
 		this.scoreNotificationCallback = _scoreNotificationCallback;
 		this._isStabilizing = false;
-	},
+	}
+	
+	, setInputDiscValue : function(newVal) {
+		this.board.removeDiscAt(this.inputDiscPos())
+		this.inputDisc().remove(this.canvas);
 
-	isStabilizing : function() { return this._isStabilizing; }
+		this.newInputDisc(newDiscWithValue(newVal),this.inputDiscPos());
+		this.inputDisc().redrawAt(this.cellToCanvas(this.inputDiscPos()), this.canvas);
+	}
+
+	, isStabilizing : function() { return this._isStabilizing; }
 
 	, setIsStabilizing : function(v) { this._isStabilizing = v; }
 
@@ -65,11 +72,6 @@ var DropXGame = Class.create({
 					selectable: false
 				  });
 		this.canvas.add(l);
-	},
-
-	newInputDisc : function(disc) {
-		this.newInputDisc(disc);
-		this.drawInputDisc();
 	},
 
 	drawInputDisc : function() {
@@ -242,9 +244,16 @@ var DropXGame = Class.create({
 
 	size : function() { return this.board.size; },
 
-	newInputDisc : function (disc) {
+	newInputDisc : function (disc,preExistingPosition) {
+
+		let existingDiskPos = this.inputDiscPos();
+		if (existingDiskPos != null)
+			this.board.removeDiscAt(existingDiskPos)
+
 		this.currentInputDisc = disc;
-		this.inputDiscPosition = {col : Math.floor(this.size() / 2.0),row : 0};
+		this.inputDiscPosition = preExistingPosition || {col : Math.floor(this.size() / 2.0),row : 0}; //if it was in some location - preserve the old location.
+		
+		this.board.setDiscAt(this.inputDisc(),this.inputDiscPos());
 		this.drawInputDisc();
 	},
 
@@ -255,8 +264,9 @@ var DropXGame = Class.create({
 	moveInputDiscRight : function()
 	{
 		if (this.inputDisc() != null )
-		{
-			this.inputDiscPosition.col = Math.min(this.size()-1,this.inputDiscPosition.col + 1);
+		{ //remove from old position, calculate new position, set it there, and notify change
+			this.board.removeDiscAt(this.inputDiscPos()); 
+			this.inputDiscPosition.col = Math.min(this.board.rightMostCol(),this.inputDiscPosition.col + 1);
 			this.board.setDisc(this.currentInputDisc,this.inputDiscPosition.row,this.inputDiscPosition.col);
 			RAISE(new CellChangeEvent(this.inputDiscPosition,this));
 		}
@@ -265,8 +275,9 @@ var DropXGame = Class.create({
 	moveInputDiscLeft : function()
 	{
 		if (this.inputDisc() != null )
-		{
-			this.inputDiscPosition.col = Math.max(0,this.inputDiscPos().col - 1);
+		{ //remove from old position, calculate new position, set it there, and notify change
+			this.board.removeDiscAt(this.inputDiscPos());
+			this.inputDiscPosition.col = Math.max(this.board.leftMostCol(),this.inputDiscPos().col - 1);
 			this.board.setDisc(this.currentInputDisc,this.inputDiscPosition.row,this.inputDiscPosition.col);
 			RAISE(new CellChangeEvent(this.inputDiscPosition,this));
 		}

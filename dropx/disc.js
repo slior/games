@@ -82,16 +82,7 @@ var Disc = Class.create ({
 		this.text.setTop(textLoc.y);
 		this.text.setLeft(textLoc.x);
 	},
-	/*
-	highlight : function (timeMillis,canvas)
-	{
-		var c = this.circle;
-		c.strokeWidth = CONFIG.HIGHLIGHT_STROKE_WIDTH;
-		c.stroke = CONFIG.HIGHLIGHT_STROKE;
-		canvas.renderAll();
-		setTimeout(function() { c.stroke = ''; canvas.renderAll(); },timeMillis);
-	},
-	*/
+	
 	highlightOn : function() {
 		if (this.isDrawn())
 		{
@@ -116,5 +107,12 @@ var Disc = Class.create ({
 			this.state = DISC_STATE.WEAK;
 		else this.state = DISC_STATE.VISIBLE;
 	}
-	
 });
+
+function newDiscWithValue(v)
+{
+	if (isNaN(v)) throw "Illegal disc value: " + v;
+
+	return new Disc(v*1,DISC_STATE.VISIBLE);
+
+}

@@ -100,6 +100,22 @@ function gameOverCallback()
 	$('gameOverMsg').show();
 }
 
+function setInputDisc()
+{
+	let val = $('inputDiscSet').value
+	switch (true)
+	{
+		case (isNaN(val)) : error("Invalid disc value: " + val); break;
+		case (val*1 < 1 || val*1 > resolveGameSize()) : error("Disc value out of range"); break;
+		default : this.game.setInputDiscValue(val); break;
+	}
+}
+
+function error(s)
+{
+	alert(s)
+}
+
 </script>
 </head>
 
@@ -121,6 +137,10 @@ function gameOverCallback()
 
 <div align="center">
 	Score: <span id="score">0</span>
+</div>
+
+<div align="center">
+	Input Disc (##): <input type="text" id="inputDiscSet"></input>&nbsp;<input type="button" value="Set" onclick="setInputDisc()" />
 </div>
 
 <div id="devDiv" style="display : none">
