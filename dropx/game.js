@@ -179,11 +179,7 @@ var DropXGame = Class.create({
 			cellsToBlow.each(function (cell) {
 						this.blowDiscAt(cell);
 						var cellsWithDiscToDrop = this.board.nonVacantCellsAbove(cell);
-						cellsWithDiscToDrop.each(function (c) {
-								var discToDrop = this.board.discAtCell(c);
-								if (discToDrop && !discToDrop.toBlow)
-									this.dropDisc(discToDrop,c);
-							}, this);
+						cellsWithDiscToDrop.each(function (c) { this.board.applyToDiscAtCell(c,d => { if (!d.toBlow) this.dropDisc(d,c) }) }, this);
 					},this);
 		}
 
