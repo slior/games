@@ -111,6 +111,11 @@ var DropXGame = Class.create({
 		}
 	}
 
+	/**
+	 * Drop the given disc, from its last position.
+	 * Return true if the disc has dropped (there was place for it to fall). False otherwise.
+	 * will also return false if the disc is invalid
+	 */
 	, dropDisc : function (disc, lastPos) {
 		if (disc)
 		{
@@ -119,14 +124,19 @@ var DropXGame = Class.create({
 			{
 				this.board.removeDiscAt(lastPos);
 				this.board.setDiscAt(disc,newPos);
+				return true;
 			}
+			else return false;
 		}
+		else return false;
 	},
 
 	dropDiscAndStabilize : function (disc,lastPos, postStabilizationCallback) {
-		this.dropDisc(disc,lastPos);
-		this.redrawBoard();
-		this.stabilizeBoard(postStabilizationCallback);
+		if (this.dropDisc(disc,lastPos))
+		{
+			this.redrawBoard();
+			this.stabilizeBoard(postStabilizationCallback);
+		}
 		
 	}
 
