@@ -46,11 +46,7 @@ var DropXGame = Class.create({
 		this.discsToDropUntilLineRise = this.discsToLineRise;
 	}
 
-	, draw : function() {
-		this.drawGrid();
-	},
-
-	drawGrid : function() {
+	, drawGrid : function() {
 		var cell = 1;
 		var gridHeight = this.size() * CONFIG.CELL_SIZE;
 		var gridWidth = this.size() * CONFIG.CELL_SIZE;
@@ -97,11 +93,7 @@ var DropXGame = Class.create({
 			{
 				this.newInputDisc(this.randomizeDisc());
 				this.countDiscDropped();
-				if (this.shouldInsertLine())
-				{
-					this.newBottomLine();
-					this.resetNewLineCounter();
-				}
+				this.insertLineIfNeeded();
 				this.newLineCountdownCallback(this.discsToDropUntilLineRise);
 			}
 		}
@@ -109,9 +101,17 @@ var DropXGame = Class.create({
 		if (inpDisc)
 			this.dropDiscAndStabilize(inpDisc,this.inputDiscPos(),postStabilizationSequence.bind(this));
 
-	},
+	}
+	
+	, insertLineIfNeeded : function() {
+		if (this.shouldInsertLine())
+		{
+			this.newBottomLine();
+			this.resetNewLineCounter();
+		}
+	}
 
-	dropDisc : function (disc, lastPos) {
+	, dropDisc : function (disc, lastPos) {
 		if (disc)
 		{
 			var newPos = this.board.firstVacantCellBelow(lastPos);
@@ -151,18 +151,18 @@ var DropXGame = Class.create({
 		function cycle()
 		{
 			this.board.mark();
-			cellsToBlow.each( function (cell) { var disc = this.board.discAtCell(cell); if (disc) disc.toBlow = true; }, this);
+			cellsToBlow.each( function (cell) { this.board.applyToDiscAtCell(cell,d => d.toBlow = true) }, this);
 			phasedCellBlownCount.push(cellsToBlow.length);
 			boardStabilizationSequence();
 		}
 
 		function highlightCellsToBlow()
 		{
-			cellsToBlow.each(function (cell) { var d = this.board.discAtCell(cell); if (d) d.highlightOn(); },this);
+			cellsToBlow.each(function (cell) { this.board.applyToDiscAtCell( cell,d => d.highlightOn()) },this);
 			this.canvas.renderAll();
 		}
 
-		function turnOffCells() { cellsToBlow.each(function (cell) { var d = this.board.discAtCell(cell); if (d) d.highlightOff(); },this); }
+		function turnOffCells() { cellsToBlow.each(function (cell) { this.board.applyToDiscAtCell(cell,d => d.highlightOff()) },this); }
 
 		function calcNextBoard()
 		{
@@ -235,7 +235,7 @@ var DropXGame = Class.create({
 	},
 
 	init : function() {
-		this.draw();
+		this.drawGrid();
 		this.initializeGame();
 		this.stabilizeBoard(null,true); //TODO: this parameter passing is ugly, fix this.
 		this.newInputDisc(this.randomizeDisc());

@@ -190,4 +190,15 @@ var Board = Class.create ({
 		return ret;
 	}
 
+	/**
+	 * Given a cell, see if there's a disc in it, and if yes, apply the function to the disc
+	 * if there's no disc at the cell, cell or func are invalid - nothing happens.
+	 */
+	, applyToDiscAtCell : function(cell,func) {
+		if (!func) return;
+		let disc = this.discAtCell(cell); 
+		if (disc) 
+			func(disc);
+	}
+
 });
