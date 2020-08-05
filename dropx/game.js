@@ -308,7 +308,7 @@ var DropXGame = Class.create({
 		{
 			//create discs
 			let discs = [];
-			$R(0,this.size()-1).each(function() {
+			$R(0,this.board.rightMostCol()).each(function() {
 				discs.push(this.randomizeDisc());
 			},this);
 			this.board.insertDiscsFromBottom(discs);
@@ -318,7 +318,7 @@ var DropXGame = Class.create({
 	}
 
 	, hasDiscsAtTopRow : function() {
-		return this.board.row(1).length > 0; //!isEmpty ?
+		return this.board.row(this.board.upperMostRow()).length > 0; //!isEmpty ?
 	}
 
 	, setGameOver : function() {

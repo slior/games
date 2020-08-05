@@ -180,12 +180,15 @@ var Board = Class.create ({
 		
 	}
 
+
+	/**
+	 * Retrieve the row at the given index
+	 */
 	, row : function(rowInd) {
 		let ret = []
 		$R(this.leftMostCol(),this.rightMostCol())
-			.each(function(colInd) {
-				let d = this.discAt(rowInd,colInd);
-				if (d != null) ret.push(d);
+			.each(function(colInd) { 
+				this.applyToDiscAtCell({ row : rowInd, col : colInd}, d => ret.push(d))
 			},this)
 		return ret;
 	}
