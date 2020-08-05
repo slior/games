@@ -277,16 +277,16 @@ var DropXGame = Class.create({
 		//Randomize initial discs
 		var maxInitialDiscCount = MAX_INITIAL_GAME_HEIGHT * this.size();
 		var initialDiscCount = randomBetween(1,maxInitialDiscCount);
-		var col = 0;
-		var row = this.size(); //bottom row
+		var col = this.board.leftMostCol();
+		var row = this.board.bottomRow();
 		$R(0,initialDiscCount).each(function() {
 			var newDisc = this.randomizeDisc();
 			this.board.setDisc(newDisc,row,col);
 			col++;
-			if (col >= this.size())
+			if (col > this.board.rightMostCol())
 			{
 				row--;
-				col = 0;
+				col = this.board.leftMostCol();
 			}
 		},this);
 		this.redrawBoard();
