@@ -85,9 +85,9 @@ var DropXGame = Class.create({
 
 	boardYToCanvasY : function (brdY) { return brdY * CONFIG.CELL_SIZE; },
 
-	inputDiscRight : function() { this.moveInputDiscRight(); },
+	inputDiscRight : function() { this.moveInputDisc(game => Math.min(game.board.rightMostCol(),game.inputDiscPosition.col + 1)); },
 
-	inputDiscLeft : function() { this.moveInputDiscLeft(); },
+	inputDiscLeft : function() { this.moveInputDisc(game => Math.max(game.board.leftMostCol(),game.inputDiscPos().col - 1)) },
 
 	dropInputDisc : function() {
 		var inpDisc = this.inputDisc();
@@ -259,25 +259,14 @@ var DropXGame = Class.create({
 
 	inputDisc : function() { return this.currentInputDisc; },
 
-	inputDiscPos : function() { return this.inputDiscPosition; },
+	inputDiscPos : function() { return this.inputDiscPosition; }
 
-	moveInputDiscRight : function()
+	, moveInputDisc : function(newColFunc)
 	{
-		if (this.inputDisc() != null )
-		{ //remove from old position, calculate new position, set it there, and notify change
-			this.board.removeDiscAt(this.inputDiscPos()); 
-			this.inputDiscPosition.col = Math.min(this.board.rightMostCol(),this.inputDiscPosition.col + 1);
-			this.board.setDisc(this.currentInputDisc,this.inputDiscPosition.row,this.inputDiscPosition.col);
-			RAISE(new CellChangeEvent(this.inputDiscPosition,this));
-		}
-	},
-
-	moveInputDiscLeft : function()
-	{
-		if (this.inputDisc() != null )
-		{ //remove from old position, calculate new position, set it there, and notify change
+		if (this.inputDisc() != null)
+		{
 			this.board.removeDiscAt(this.inputDiscPos());
-			this.inputDiscPosition.col = Math.max(this.board.leftMostCol(),this.inputDiscPos().col - 1);
+			this.inputDiscPosition.col = newColFunc(this);
 			this.board.setDisc(this.currentInputDisc,this.inputDiscPosition.row,this.inputDiscPosition.col);
 			RAISE(new CellChangeEvent(this.inputDiscPosition,this));
 		}
