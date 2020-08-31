@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Mancala</title>
+    <style type="text/css">
+      canvas {
+        align : center;
+      }
+      
+      textarea {
+        border: 1px solid black;
+      }
+      
+      body {
+        font-family : Arial;
+      }
+      
+      #gameOverMsg {
+        font-size: xx-large;
+        color: red;
+        border : 2px solid red;
+      }
+      
+      </style>
+      <script src="main.js"></script>
+      <script>
+
+        function $(id) { return document.getElementById(id); }
+
+        var cnvs = null; 
+
+        function setup()
+        {
+          //cnvs = main.initCanvas('cnvsMain')
+          main.initGame('cnvsMain');
+        }
+      </script>
+  </head>
+  <body onload="setup();">
+    
+    <div width="100%" align="center">
+      <canvas id="cnvsMain" width="850" height="500">
+        
+      </canvas>
+    </div>
+  </body>
+</html>
