@@ -6,6 +6,12 @@ function range(start,finish)
   return ret;
 }
 
+function ERR(msg) { throw new Error(msg); }
+
+function dbg(msg) { console.log(msg || 'MISSING DBG MSG') }
+
 module.exports = {
     range : range
+    , ERR : ERR
+    , dbg : dbg
   }
