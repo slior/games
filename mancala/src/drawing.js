@@ -74,6 +74,7 @@ function drawBoard(cnvs,cellCount)
 function drawBoardState(cnvs,board)
 {
   dbg("drawing board state")
+  let FONT_SIZE = 20;
   board.forAllCells(boardCell => {
     let stonesInCell = board.stonesIn(boardCell);
     switch (true)
@@ -88,24 +89,38 @@ function drawBoardState(cnvs,board)
   function drawPlayer1Home(stoneCount)
   {
     dbg("drawing player 1 home: " + stoneCount)
-    drawText(stoneCount,TOP_LEFT.x + CELL_SIZE / 2 - 10,TOP_LEFT.y + CELL_SIZE * 1.5 - 10)
+    drawText(stoneCount,TOP_LEFT.x + CELL_SIZE / 2 - FONT_SIZE/2,TOP_LEFT.y + CELL_SIZE * 1.5 - FONT_SIZE/2)
   }
 
   function drawPlayer2Home(stoneCount)
   {
     dbg("drawing player 2 home: " + stoneCount)
-    drawText(stoneCount,TOP_LEFT.x + boardWidthInCells(board.totalCellCount()) * CELL_SIZE - CELL_SIZE/2 - 10,TOP_LEFT.y + CELL_SIZE*1.5-10)
+    drawText(stoneCount,TOP_LEFT.x + boardWidthInCells(board.totalCellCount()) * CELL_SIZE - CELL_SIZE/2 - FONT_SIZE/2,TOP_LEFT.y + CELL_SIZE*1.5-FONT_SIZE/2)
   }
 
   function drawCell(boardCell,stoneCount)
   {
-    //dbg("drawing " + stoneCount + " in " + boardCell);
+    var left = 0;
+    var top = 0;
+    switch (true)
+    {
+      case board.isPlayer1Cell(boardCell) : 
+        top = CELL_SIZE /2 - FONT_SIZE/2; 
+        left = boardCell * CELL_SIZE + CELL_SIZE/2 - FONT_SIZE/2;
+        break;
+      case board.isPlayer2Cell(boardCell) : 
+        top = CELL_SIZE * 2.5 - FONT_SIZE/2;
+        left = (board.totalCellCount() - boardCell) * CELL_SIZE + CELL_SIZE/2 - FONT_SIZE/2;
+        break;
+      default : ERR("Invalid board cell: must be either player 1 or player 2 cell");
+    }
+    drawText(stoneCount,TOP_LEFT.x + left,TOP_LEFT.y + top);
   }
 
   function drawText(txt,left,top)
   {
     dbg("drawing " + txt + " at " + top + "," + left);
-    cnvs.add(new fabric.Text(txt+'',{fontSize : 20, left : left, top : top}))
+    cnvs.add(new fabric.Text(txt+'',{fontSize : FONT_SIZE, left : left, top : top, selectable : false}))
   }
 }
 
