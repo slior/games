@@ -164,7 +164,7 @@ function drawBoardState(cnvs,board)
   {
     let c = new fabric.Circle({originX : 'center',originY : 'center', radius : FONT_SIZE/2+MARGIN, fill : 'white',stroke : 'blue'})
     let t = new fabric.Text(stoneCount+'',{fontSize : FONT_SIZE, originX : 'center',originY : 'center', selectable : false});
-    let g = new fabric.Group([c,t], {left : left, top : top, selectable : false});
+    let g = new fabric.Group([c,t], {left : left, top : top, selectable : false,hoverCursor : 'pointer'});
     cnvs.add(g);
     return g;
   }
