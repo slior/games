@@ -54,8 +54,11 @@ class Board
     isPlayer1Cell(boardCell) { return boardCell >= 1 && boardCell <= this.cellCount/2-1; }
     isPlayer2Cell(boardCell) { return boardCell >= this.cellCount/2+1 && boardCell <= this.cellCount-1; }
 
-    isPlayer1Home(boardCell) { return boardCell == 0; }
-    isPlayer2Home(boardCell) { return boardCell == this.cellCount/2; }
+    isPlayer1Home(boardCell) { return boardCell == this.player1Home(); }
+    isPlayer2Home(boardCell) { return boardCell == this.player2Home(); }
+
+    player1Home() { return 0; }
+    player2Home() { return this.cellCount/2; }
 
     totalCellCount() { return this.cellCount; }
 }

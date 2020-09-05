@@ -1,5 +1,12 @@
 const {fabric} = require("fabric")
-const {range,dbg, ERR} = require("./util.js")
+const {range,dbg, ERR, maybe,None} = require("./util.js")
+
+
+let CELL_SIZE = 50;
+
+let TOP_LEFT = { x : 50, y : 50};
+let stoneUIElement = [];
+
 
 function initCanvas(canvasEl)
 {
@@ -11,6 +18,15 @@ function initCanvas(canvasEl)
   return ret;
 }
 
+function initDrawingElements(cellCount) 
+{
+  range(1,cellCount).forEach( _ => stoneUIElement.push(None));
+}
+
+function rememberUIObj(boardCell,el) { stoneUIElement[boardCell] = maybe(el); }
+function forgetUIObj(boardCell) { stoneUIElement[boardCell] = None; }
+function uiObjAt(boardCell) { return stoneUIElement[boardCell]; }
+
 function drawLineOn(cnvs,x1,y1,x2,y2,color)
 {
   let l = new fabric.Line([x1,y1,x2,y2], {
@@ -21,10 +37,6 @@ function drawLineOn(cnvs,x1,y1,x2,y2,color)
   cnvs.add(l);
 
 }
-
-let CELL_SIZE = 50;
-
-let TOP_LEFT = { x : 50, y : 50};
 
 function boardWidthInCells(cellCount) { 
   let playerCellCount = cellCount/2-1;
@@ -71,17 +83,22 @@ function drawBoard(cnvs,cellCount)
 
 }
 
+
+
 function drawBoardState(cnvs,board)
 {
   dbg("drawing board state")
   let FONT_SIZE = 20;
+  let MARGIN = 5
   board.forAllCells(boardCell => {
     let stonesInCell = board.stonesIn(boardCell);
     switch (true)
     {
-      case board.isPlayer1Home(boardCell) : drawPlayer1Home(stonesInCell); break;
-      case board.isPlayer2Home(boardCell) : drawPlayer2Home(stonesInCell); break;
-      case board.isPlayer1Cell(boardCell) || board.isPlayer2Cell(boardCell): drawCell(boardCell,stonesInCell); break;
+      case board.isPlayer1Home(boardCell) : drawOrRemove(boardCell,stonesInCell,(_,stoneCount) => { drawPlayer1Home(stoneCount); }); break;
+      case board.isPlayer2Home(boardCell) : drawOrRemove(boardCell,stonesInCell,(_,stoneCount) => { drawPlayer2Home(stoneCount); }); break;
+      case board.isPlayer1Cell(boardCell) || board.isPlayer2Cell(boardCell): 
+        drawOrRemove(boardCell,stonesInCell,(boardCell,stoneCount) => { drawCell(boardCell,stoneCount); }); 
+        break;
       default : ERR ("Invalid board cell when drawing state: " + boardCell); break;
     }
   })
@@ -89,13 +106,20 @@ function drawBoardState(cnvs,board)
   function drawPlayer1Home(stoneCount)
   {
     dbg("drawing player 1 home: " + stoneCount)
-    drawText(stoneCount,TOP_LEFT.x + CELL_SIZE / 2 - FONT_SIZE/2,TOP_LEFT.y + CELL_SIZE * 1.5 - FONT_SIZE/2)
+    rememberUIObj(board.player1Home(),
+                  drawStones(stoneCount,
+                              TOP_LEFT.x + CELL_SIZE / 2 - FONT_SIZE/2-MARGIN,
+                              TOP_LEFT.y + CELL_SIZE * 1.5 - FONT_SIZE/2-MARGIN));
   }
 
   function drawPlayer2Home(stoneCount)
   {
     dbg("drawing player 2 home: " + stoneCount)
-    drawText(stoneCount,TOP_LEFT.x + boardWidthInCells(board.totalCellCount()) * CELL_SIZE - CELL_SIZE/2 - FONT_SIZE/2,TOP_LEFT.y + CELL_SIZE*1.5-FONT_SIZE/2)
+    rememberUIObj(board.player2Home(), 
+                  drawStones(stoneCount,
+                    /* left = */TOP_LEFT.x + boardWidthInCells(board.totalCellCount()) * CELL_SIZE - CELL_SIZE/2 - FONT_SIZE/2-MARGIN, 
+                    /* top = */TOP_LEFT.y + CELL_SIZE*1.5-FONT_SIZE/2-MARGIN));
+
   }
 
   function drawCell(boardCell,stoneCount)
@@ -105,23 +129,46 @@ function drawBoardState(cnvs,board)
     switch (true)
     {
       case board.isPlayer1Cell(boardCell) : 
-        top = CELL_SIZE /2 - FONT_SIZE/2; 
-        left = boardCell * CELL_SIZE + CELL_SIZE/2 - FONT_SIZE/2;
+        top = CELL_SIZE /2 - FONT_SIZE/2 - MARGIN; 
+        left = boardCell * CELL_SIZE + CELL_SIZE/2 - FONT_SIZE/2 - MARGIN;
         break;
       case board.isPlayer2Cell(boardCell) : 
-        top = CELL_SIZE * 2.5 - FONT_SIZE/2;
-        left = (board.totalCellCount() - boardCell) * CELL_SIZE + CELL_SIZE/2 - FONT_SIZE/2;
+        top = CELL_SIZE * 2.5 - FONT_SIZE/2 - MARGIN;
+        left = (board.totalCellCount() - boardCell) * CELL_SIZE + CELL_SIZE/2 - FONT_SIZE/2 - MARGIN;
         break;
       default : ERR("Invalid board cell: must be either player 1 or player 2 cell");
     }
-    drawText(stoneCount,TOP_LEFT.x + left,TOP_LEFT.y + top);
+    rememberUIObj(boardCell,drawStones(stoneCount,TOP_LEFT.x + left,TOP_LEFT.y + top));
   }
 
-  function drawText(txt,left,top)
+  function drawOrRemove(boardCell,stoneCount,drawFunc)
   {
-    dbg("drawing " + txt + " at " + top + "," + left);
-    cnvs.add(new fabric.Text(txt+'',{fontSize : FONT_SIZE, left : left, top : top, selectable : false}))
+    if (stoneCount > 0)
+    {
+      drawFunc(boardCell,stoneCount);
+      uiObjAt(boardCell).ifPresent(uiObj => {uiObj.on('mousedown', _ => {dbg('Clicked cell: ' + boardCell + '!')})})
+
+    }
+    else removeDrawingAt(boardCell);
   }
+
+  function removeDrawingAt(boardCell) 
+  {
+    uiObjAt(boardCell).ifPresent(uiObj => {
+      cnvs.remove(uiObj);
+      forgetUIObj(boardCell);
+    });
+  }
+
+  function drawStones(stoneCount,left,top)
+  {
+    let c = new fabric.Circle({originX : 'center',originY : 'center', radius : FONT_SIZE/2+MARGIN, fill : 'white',stroke : 'blue'})
+    let t = new fabric.Text(stoneCount+'',{fontSize : FONT_SIZE, originX : 'center',originY : 'center', selectable : false});
+    let g = new fabric.Group([c,t], {left : left, top : top, selectable : false});
+    cnvs.add(g);
+    return g;
+  }
+
 }
 
 module.exports = {
@@ -129,4 +176,5 @@ module.exports = {
     , drawBoard : drawBoard
     , initCanvas : initCanvas
     , drawBoardState : drawBoardState
+    , initDrawingElements : initDrawingElements
   }
