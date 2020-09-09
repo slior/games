@@ -1,6 +1,7 @@
 
 function range(start,finish) 
 { // TODO: validate 'target'
+  if (start > finish) return [];
   let ret = [start]
   for (var i = start+1; i <= finish; i++) ret.push(i)
   return ret;
@@ -13,6 +14,7 @@ function dbg(msg) { console.log(msg || 'MISSING DBG MSG') }
 let None = {}
 None.map = f => None;
 None.ifPresent = f => {} //do nothing
+None.toString = () => "None"
 
 class Some
 {
@@ -35,6 +37,8 @@ class Some
   {
     this.map(f); //same as map, but don't care about the result;
   }
+
+  toString() { return "Some(" + this.value.toString() + ")"}
 }
 
 function maybe(o) 

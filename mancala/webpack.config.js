@@ -8,4 +8,5 @@ module.exports = {
     library : 'main',
     libraryTarget : 'var'
   },
+  devtool : 'eval-source-map'
 };

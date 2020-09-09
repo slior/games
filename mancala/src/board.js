@@ -61,6 +61,31 @@ class Board
     player2Home() { return this.cellCount/2; }
 
     totalCellCount() { return this.cellCount; }
+
+    playCell(cell) 
+    {
+        range(1,this.stonesIn(cell))
+        .map(steps => this.cellFrom(cell,steps))
+        .forEach(c => this.addStoneTo(c))
+
+        this.setCellStoneCount(cell,0);
+    }
+
+    /**
+     * Calculate a target cell, given a new cell, walking counter-clockwise a number of steps as given
+     * @param {number} cell The cell we're starting from
+     * @param {number} steps The number of steps to take from this cell, counter-clockwise, to reach the new cell
+     */
+    cellFrom(cell,steps)
+    {
+        //walk backwards, and if we pass cell 0, add the number of cells again.
+        return cell - steps + (cell < steps ? this.totalCellCount() : 0);
+    }
+
+    addStoneTo(cell)
+    {
+        this.setCellStoneCount(cell,this.stonesIn(cell)+1)
+    }
 }
 
 

@@ -25,7 +25,7 @@ function initDrawingElements(cellCount)
 
 function rememberUIObj(boardCell,el) { stoneUIElement[boardCell] = maybe(el); }
 function forgetUIObj(boardCell) { stoneUIElement[boardCell] = None; }
-function uiObjAt(boardCell) { return stoneUIElement[boardCell]; }
+function uiObjAt(boardCell) { return stoneUIElement[boardCell];  }
 
 function drawLineOn(cnvs,x1,y1,x2,y2,color)
 {
@@ -85,9 +85,9 @@ function drawBoard(cnvs,cellCount)
 
 
 
-function drawBoardState(cnvs,board)
+function drawBoardState(cnvs,board,boardClickHandler)
 {
-  dbg("drawing board state")
+  dbg("--- drawing board state --- ")
   let FONT_SIZE = 20;
   let MARGIN = 5
   board.forAllCells(boardCell => {
@@ -97,7 +97,7 @@ function drawBoardState(cnvs,board)
       case board.isPlayer1Home(boardCell) : drawOrRemove(boardCell,stonesInCell,(_,stoneCount) => { drawPlayer1Home(stoneCount); }); break;
       case board.isPlayer2Home(boardCell) : drawOrRemove(boardCell,stonesInCell,(_,stoneCount) => { drawPlayer2Home(stoneCount); }); break;
       case board.isPlayer1Cell(boardCell) || board.isPlayer2Cell(boardCell): 
-        drawOrRemove(boardCell,stonesInCell,(boardCell,stoneCount) => { drawCell(boardCell,stoneCount); }); 
+        drawOrRemove(boardCell,stonesInCell,(bc,stoneCount) => { drawCell(bc,stoneCount); }); 
         break;
       default : ERR ("Invalid board cell when drawing state: " + boardCell); break;
     }
@@ -105,7 +105,6 @@ function drawBoardState(cnvs,board)
 
   function drawPlayer1Home(stoneCount)
   {
-    dbg("drawing player 1 home: " + stoneCount)
     rememberUIObj(board.player1Home(),
                   drawStones(stoneCount,
                               TOP_LEFT.x + CELL_SIZE / 2 - FONT_SIZE/2-MARGIN,
@@ -114,7 +113,6 @@ function drawBoardState(cnvs,board)
 
   function drawPlayer2Home(stoneCount)
   {
-    dbg("drawing player 2 home: " + stoneCount)
     rememberUIObj(board.player2Home(), 
                   drawStones(stoneCount,
                     /* left = */TOP_LEFT.x + boardWidthInCells(board.totalCellCount()) * CELL_SIZE - CELL_SIZE/2 - FONT_SIZE/2-MARGIN, 
@@ -144,9 +142,10 @@ function drawBoardState(cnvs,board)
   function drawOrRemove(boardCell,stoneCount,drawFunc)
   {
     if (stoneCount > 0)
-    {
+    { 
+      removeDrawingAt(boardCell);
       drawFunc(boardCell,stoneCount);
-      uiObjAt(boardCell).ifPresent(uiObj => {uiObj.on('mousedown', _ => {dbg('Clicked cell: ' + boardCell + '!')})})
+      uiObjAt(boardCell).ifPresent(uiObj => {uiObj.on('mousedown', _ => { boardClickHandler(boardCell); })})
 
     }
     else removeDrawingAt(boardCell);
@@ -169,6 +168,7 @@ function drawBoardState(cnvs,board)
     return g;
   }
 
+  
 }
 
 module.exports = {
