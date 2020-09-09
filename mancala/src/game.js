@@ -40,13 +40,18 @@ class MancalaGame
 
   handleCellClick(boardCell)
   {
+    this.showMsg(" ")
     if (!this.isValidMove(boardCell))
       this.showMsg("Invalid Move")
     else 
     {
-      this.showMsg(" ")
-      this.playCell(boardCell);
-      this.updatePlayerCallback(this.togglePlayer());
+      let lastCell = this.playCell(boardCell);
+      let lastCellIsHomeOfCurrentPlayer = this.player1Playing(this.board.isPlayer1Home(lastCell)) ||
+                                          this.player2Playing(this.board.isPlayer2Home(lastCell))
+      if (!lastCellIsHomeOfCurrentPlayer)
+        this.updatePlayerCallback(this.togglePlayer());
+      else 
+        this.showMsg("Extra Turn")
       
       this.canvas.ifPresent(cnvs => {
         drawBoardState(cnvs,this.board,this)
@@ -55,6 +60,17 @@ class MancalaGame
     }
   }
 
+  player1Playing(andAlso) 
+  { 
+    return this.player == PLAYER.one && (typeof(andAlso) == undefined ? true : andAlso);
+  }
+
+  player2Playing(andAlso)
+  { 
+    return this.player == PLAYER.two && (typeof(andAlso) == undefined ? true : andAlso);
+  }
+  
+
   playCell(boardCell)
   {
     let _ = this.board;
@@ -62,19 +78,21 @@ class MancalaGame
     let lastCell = targetCells[targetCells.length-1];
     let isLastCellEmpty = _.stonesIn(lastCell) == 0;
     let isLastCellAHomeCell = _.isPlayer1Home(lastCell) || _.isPlayer2Home(lastCell);
-    let lastCellBelongsToCurrentPlayer = (_.isPlayer1Cell(lastCell) && this.player == PLAYER.one) ||
-                                         (_.isPlayer2Cell(lastCell) && this.player == PLAYER.two)
+    let lastCellBelongsToCurrentPlayer = this.player1Playing(_.isPlayer1Cell(lastCell)) || 
+                                         this.player2Playing(_.isPlayer2Cell(lastCell))
     
     targetCells.forEach(c => _.addStoneTo(c));
 
     if (isLastCellEmpty && !isLastCellAHomeCell && lastCellBelongsToCurrentPlayer)
-    { //get the stones from the other player
+    { //capture the stones from the other player
       let acrossCell = _.totalCellCount() - lastCell;
       _.setCellStoneCount(lastCell,_.stonesIn(lastCell) + _.stonesIn(acrossCell));
       _.setCellStoneCount(acrossCell,0);
     }
 
     _.setCellStoneCount(boardCell,0);
+
+    return lastCell;
 
   }
 
