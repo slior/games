@@ -2,7 +2,7 @@
 
 const {initCanvas,drawBoard,drawBoardState,initDrawingElements} = require("./drawing.js")
 const {Board} = require("./board.js")
-const {maybe,requires} = require("./util.js")
+const {maybe,requires,range} = require("./util.js")
 
 const CELL_COUNT = 14;
 
@@ -45,7 +45,7 @@ class MancalaGame
     else 
     {
       this.showMsg(" ")
-      this.board.playCell(boardCell);
+      this.playCell(boardCell);
       this.updatePlayerCallback(this.togglePlayer());
       
       this.canvas.ifPresent(cnvs => {
@@ -53,6 +53,29 @@ class MancalaGame
       })
       
     }
+  }
+
+  playCell(boardCell)
+  {
+    let _ = this.board;
+    let targetCells =  range(1,_.stonesIn(boardCell)).map(steps => _.cellFrom(boardCell,steps))
+    let lastCell = targetCells[targetCells.length-1];
+    let isLastCellEmpty = _.stonesIn(lastCell) == 0;
+    let isLastCellAHomeCell = _.isPlayer1Home(lastCell) || _.isPlayer2Home(lastCell);
+    let lastCellBelongsToCurrentPlayer = (_.isPlayer1Cell(lastCell) && this.player == PLAYER.one) ||
+                                         (_.isPlayer2Cell(lastCell) && this.player == PLAYER.two)
+    
+    targetCells.forEach(c => _.addStoneTo(c));
+
+    if (isLastCellEmpty && !isLastCellAHomeCell && lastCellBelongsToCurrentPlayer)
+    { //get the stones from the other player
+      let acrossCell = _.totalCellCount() - lastCell;
+      _.setCellStoneCount(lastCell,_.stonesIn(lastCell) + _.stonesIn(acrossCell));
+      _.setCellStoneCount(acrossCell,0);
+    }
+
+    _.setCellStoneCount(boardCell,0);
+
   }
 
   isValidMove(boardCell)

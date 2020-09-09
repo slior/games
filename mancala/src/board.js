@@ -62,15 +62,6 @@ class Board
 
     totalCellCount() { return this.cellCount; }
 
-    playCell(cell) 
-    {
-        range(1,this.stonesIn(cell))
-        .map(steps => this.cellFrom(cell,steps))
-        .forEach(c => this.addStoneTo(c))
-
-        this.setCellStoneCount(cell,0);
-    }
-
     /**
      * Calculate a target cell, given a new cell, walking counter-clockwise a number of steps as given
      * @param {number} cell The cell we're starting from
