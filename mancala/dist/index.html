@@ -27,13 +27,18 @@
 
         function $(id) { return document.getElementById(id); }
 
-        var cnvs = null; 
+        var game = null;
 
         function setup()
         {
-          //cnvs = main.initCanvas('cnvsMain')
-          main.initGame('cnvsMain');
+          game = new main.MancalaGame('cnvsMain',updateCurrentGame);
         }
+
+        function updateCurrentGame(player)
+        {
+          $('spnPlayer').innerText = player.toString();
+        }
+
       </script>
   </head>
   <body onload="setup();">
@@ -42,6 +47,10 @@
       <canvas id="cnvsMain" width="850" height="500">
         
       </canvas>
+      <div>
+        Player: <span id="spnPlayer"></span>
+      </div>
     </div>
+
   </body>
 </html>

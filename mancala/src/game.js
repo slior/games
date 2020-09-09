@@ -2,32 +2,56 @@
 
 const {initCanvas,drawBoard,drawBoardState,initDrawingElements} = require("./drawing.js")
 const {Board} = require("./board.js")
-const {dbg, None,maybe} = require("./util.js")
+const {maybe,requires} = require("./util.js")
 
 const CELL_COUNT = 14;
 
-let board = new Board(CELL_COUNT)
-var canvas = None;
+const PLAYER = { 
+  one : {
+    toString : () => "ONE"
+    , theOtherOne : () => PLAYER.two
+  }
+  , two : {
+    toString : () => "TWO"
+    , theOtherOne : () => PLAYER.one
+  } }
 
-function initGame(cnvsELID)
+class MancalaGame
 {
-  canvas = maybe(initCanvas(cnvsELID));
-  canvas.ifPresent(cnvs => {
-    initDrawingElements(board.totalCellCount());
-    drawBoard(cnvs,CELL_COUNT);
-    drawBoardState(cnvs,board,boardClickHandler);
-  })
-}
+  constructor(cnvsELID,_updatePlayerCallback)
+  {
+    requires(_updatePlayerCallback != null,"Must have a player update callback")
 
-function boardClickHandler(boardCell)
-{
-  board.playCell(boardCell);
-  canvas.ifPresent(cnvs => {
-    drawBoardState(cnvs,board,boardClickHandler)
-  })
+    this.board = new Board(CELL_COUNT);
+    this.player = PLAYER.one;
+    this.updatePlayerCallback = _updatePlayerCallback;
+    this.updatePlayerCallback(this.player);
+    
+    this.canvas = maybe(initCanvas(cnvsELID));
+    this.canvas.ifPresent(cnvs => {
+      initDrawingElements(this.board.totalCellCount());
+      drawBoard(cnvs,CELL_COUNT);
+      drawBoardState(cnvs,this.board,this);
+    })
+  }
 
+  handleCellClick(boardCell)
+  {
+    this.board.playCell(boardCell);
+    this.updatePlayerCallback(this.togglePlayer());
+    
+    this.canvas.ifPresent(cnvs => {
+      drawBoardState(cnvs,this.board,this)
+    })
+  }
+
+  togglePlayer()
+  {
+    this.player = this.player.theOtherOne();
+    return this.player;
+  }
 }
 
 module.exports = {
-  initGame : initGame
+  MancalaGame
 }

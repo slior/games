@@ -11,6 +11,18 @@ function ERR(msg) { throw new Error(msg); }
 
 function dbg(msg) { console.log(msg || 'MISSING DBG MSG') }
 
+/**
+ * Small syntactic sugar for coding assertions.
+ * 
+ * @param {Boolean} pred The result of evaluating the requirement
+ * @param {String} msg The message to show as part of the error
+ */
+function requires(pred,msg)
+{
+  if (!pred) ERR(msg);
+}
+
+///--- Small Option implementation
 let None = {}
 None.map = f => None;
 None.ifPresent = f => {} //do nothing
@@ -52,5 +64,6 @@ module.exports = {
     , dbg : dbg
     , maybe : maybe
     , None : None
+    , requires : requires
   }
   

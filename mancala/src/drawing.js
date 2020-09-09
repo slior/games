@@ -85,7 +85,7 @@ function drawBoard(cnvs,cellCount)
 
 
 
-function drawBoardState(cnvs,board,boardClickHandler)
+function drawBoardState(cnvs,board,controller)
 {
   dbg("--- drawing board state --- ")
   let FONT_SIZE = 20;
@@ -94,10 +94,10 @@ function drawBoardState(cnvs,board,boardClickHandler)
     let stonesInCell = board.stonesIn(boardCell);
     switch (true)
     {
-      case board.isPlayer1Home(boardCell) : drawOrRemove(boardCell,stonesInCell,(_,stoneCount) => { drawPlayer1Home(stoneCount); }); break;
-      case board.isPlayer2Home(boardCell) : drawOrRemove(boardCell,stonesInCell,(_,stoneCount) => { drawPlayer2Home(stoneCount); }); break;
+      case board.isPlayer1Home(boardCell) : drawOrRemove(boardCell,stonesInCell,(_,stoneCount) => { drawPlayer1Home(stoneCount); },false); break;
+      case board.isPlayer2Home(boardCell) : drawOrRemove(boardCell,stonesInCell,(_,stoneCount) => { drawPlayer2Home(stoneCount); },false); break;
       case board.isPlayer1Cell(boardCell) || board.isPlayer2Cell(boardCell): 
-        drawOrRemove(boardCell,stonesInCell,(bc,stoneCount) => { drawCell(bc,stoneCount); }); 
+        drawOrRemove(boardCell,stonesInCell,(bc,stoneCount) => { drawCell(bc,stoneCount); },true);
         break;
       default : ERR ("Invalid board cell when drawing state: " + boardCell); break;
     }
@@ -107,8 +107,9 @@ function drawBoardState(cnvs,board,boardClickHandler)
   {
     rememberUIObj(board.player1Home(),
                   drawStones(stoneCount,
-                              TOP_LEFT.x + CELL_SIZE / 2 - FONT_SIZE/2-MARGIN,
-                              TOP_LEFT.y + CELL_SIZE * 1.5 - FONT_SIZE/2-MARGIN));
+                      /* left = */ TOP_LEFT.x + CELL_SIZE / 2 - FONT_SIZE/2-MARGIN,
+                      /* top = */  TOP_LEFT.y + CELL_SIZE * 1.5 - FONT_SIZE/2-MARGIN,
+                      /* clickable = */ false));
   }
 
   function drawPlayer2Home(stoneCount)
@@ -116,7 +117,8 @@ function drawBoardState(cnvs,board,boardClickHandler)
     rememberUIObj(board.player2Home(), 
                   drawStones(stoneCount,
                     /* left = */TOP_LEFT.x + boardWidthInCells(board.totalCellCount()) * CELL_SIZE - CELL_SIZE/2 - FONT_SIZE/2-MARGIN, 
-                    /* top = */TOP_LEFT.y + CELL_SIZE*1.5-FONT_SIZE/2-MARGIN));
+                    /* top = */TOP_LEFT.y + CELL_SIZE*1.5-FONT_SIZE/2-MARGIN,
+                    /* clickable = */ false));
 
   }
 
@@ -136,16 +138,16 @@ function drawBoardState(cnvs,board,boardClickHandler)
         break;
       default : ERR("Invalid board cell: must be either player 1 or player 2 cell");
     }
-    rememberUIObj(boardCell,drawStones(stoneCount,TOP_LEFT.x + left,TOP_LEFT.y + top));
+    rememberUIObj(boardCell,drawStones(stoneCount,TOP_LEFT.x + left,TOP_LEFT.y + top,true));
   }
 
-  function drawOrRemove(boardCell,stoneCount,drawFunc)
+  function drawOrRemove(boardCell,stoneCount,drawFunc,drawClickable)
   {
     if (stoneCount > 0)
     { 
       removeDrawingAt(boardCell);
-      drawFunc(boardCell,stoneCount);
-      uiObjAt(boardCell).ifPresent(uiObj => {uiObj.on('mousedown', _ => { boardClickHandler(boardCell); })})
+      drawFunc(boardCell,stoneCount,drawClickable);
+      if (drawClickable) uiObjAt(boardCell).ifPresent(uiObj => {uiObj.on('mousedown', _ => { controller.handleCellClick(boardCell); })})
 
     }
     else removeDrawingAt(boardCell);
@@ -159,11 +161,11 @@ function drawBoardState(cnvs,board,boardClickHandler)
     });
   }
 
-  function drawStones(stoneCount,left,top)
+  function drawStones(stoneCount,left,top,isClickable)
   {
     let c = new fabric.Circle({originX : 'center',originY : 'center', radius : FONT_SIZE/2+MARGIN, fill : 'white',stroke : 'blue'})
     let t = new fabric.Text(stoneCount+'',{fontSize : FONT_SIZE, originX : 'center',originY : 'center', selectable : false});
-    let g = new fabric.Group([c,t], {left : left, top : top, selectable : false,hoverCursor : 'pointer'});
+    let g = new fabric.Group([c,t], {left : left, top : top, selectable : false,hoverCursor : isClickable ? 'pointer' : 'default'});
     cnvs.add(g);
     return g;
   }
