@@ -19,6 +19,11 @@
         margin:auto;
         width:20%;
       }
+      
+      #divMsg  {
+        margin:auto;
+        width:20%;
+      }
 
       #divCanvas {
         margin:auto;
@@ -40,12 +45,17 @@
 
         function setup()
         {
-          game = new main.MancalaGame('cnvsMain',updateCurrentGame);
+          game = new main.MancalaGame('cnvsMain',updateCurrentPlayer,showMsg);
         }
 
-        function updateCurrentGame(player)
+        function updateCurrentPlayer(player)
         {
           $('spnPlayer').innerText = player.toString();
+        }
+
+        function showMsg(msg)
+        {
+          $('divMsg').innerHTML = msg;
         }
 
       </script>
@@ -58,6 +68,9 @@
     </div>
     <div id="divPlayer">
       Player: <span id="spnPlayer"></span>
+    </div>
+    <div id="divMsg">
+      
     </div>
   </body>
 </html>
