@@ -77,6 +77,35 @@ class Board
     {
         this.setCellStoneCount(cell,this.stonesIn(cell)+1)
     }
+
+
+    allPlayer1Cells(predicate)
+    {
+        var ret = true;
+        this.forAllPlayer1Cells(c => { ret = ret && predicate(c)})
+        return ret;
+    }
+
+    allPlayer2Cells(predicate)
+    {
+        var ret = true;
+        this.forAllPlayer2Cells(c => { ret = ret && predicate(c)})
+        return ret;
+    }
+
+    player1StoneCount()
+    {
+        var ret = this.stonesIn(this.player1Home());
+        this.forAllPlayer1Cells(c => { ret += this.stonesIn(c)})
+        return ret;
+    }
+
+    player2StoneCount()
+    {
+        var ret = this.stonesIn(this.player2Home())
+        this.forAllPlayer2Cells(c => { ret += this.stonesIn(c)})
+        return ret;
+    }
 }
 
 

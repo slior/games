@@ -87,7 +87,6 @@ function drawBoard(cnvs,cellCount)
 
 function drawBoardState(cnvs,board,controller)
 {
-  dbg("--- drawing board state --- ")
   let FONT_SIZE = 20;
   let MARGIN = 5
   board.forAllCells(boardCell => {

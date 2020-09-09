@@ -2,7 +2,7 @@
 
 const {initCanvas,drawBoard,drawBoardState,initDrawingElements} = require("./drawing.js")
 const {Board} = require("./board.js")
-const {maybe,requires,range} = require("./util.js")
+const {maybe,requires,range,dbg} = require("./util.js")
 
 const CELL_COUNT = 14;
 
@@ -23,6 +23,7 @@ class MancalaGame
     requires(_updatePlayerCallback != null,"Must have a player update callback")
     requires(_showMsgCallback != null,"Must have a callback to show messages")
 
+    this.gameDone = false;
     this.board = new Board(CELL_COUNT);
     this.player = PLAYER.one;
     this.updatePlayerCallback = _updatePlayerCallback;
@@ -39,7 +40,12 @@ class MancalaGame
   }
 
   handleCellClick(boardCell)
-  {
+  { //todo: clean this up
+    if (this.gameDone)
+    {
+      dbg("Game over, get outta here");
+      return;
+    }
     this.showMsg(" ")
     if (!this.isValidMove(boardCell))
       this.showMsg("Invalid Move")
@@ -53,12 +59,36 @@ class MancalaGame
       else 
         this.showMsg("Extra Turn")
       
+      let currentPlayerHasNoMoreMoves = this.player1Playing(this.board.allPlayer1Cells(c => this.board.stonesIn(c) <= 0)) ||
+                                        this.player2Playing(this.board.allPlayer2Cells(c => this.board.stonesIn(c) <= 0))
+      if (currentPlayerHasNoMoreMoves)
+        this.gameOver();
+
       this.canvas.ifPresent(cnvs => {
         drawBoardState(cnvs,this.board,this)
       })
       
     }
   }
+
+  gameOver()
+  {
+    let player1StoneCount = this.board.player1StoneCount();
+    let player2StoneCount = this.board.player2StoneCount();
+
+    let a = ["Game Over","# Stones P1:" + player1StoneCount,"# Stones P2: " + player2StoneCount];
+    switch (true)
+    {
+      case player1StoneCount > player2StoneCount : a.push("Player 1 Wins!"); break;
+      case player2StoneCount > player1StoneCount : a.push("Player 2 Wins!"); break;
+      default : a.push("Draw!"); break;
+    }
+    
+    this.showMsg(a.join("<br/>"));
+    this.setGameOver();
+  }
+
+  setGameOver() { this.gameDone = true; }
 
   player1Playing(andAlso) 
   { 
@@ -86,6 +116,7 @@ class MancalaGame
     if (isLastCellEmpty && !isLastCellAHomeCell && lastCellBelongsToCurrentPlayer)
     { //capture the stones from the other player
       let acrossCell = _.totalCellCount() - lastCell;
+      dbg("Capturing stones from " + acrossCell + " to " + lastCell)
       _.setCellStoneCount(lastCell,_.stonesIn(lastCell) + _.stonesIn(acrossCell));
       _.setCellStoneCount(acrossCell,0);
     }
