@@ -14,7 +14,16 @@
       body {
         font-family : Arial;
       }
-      
+
+      #divPlayer {
+        margin:auto;
+        width:20%;
+      }
+
+      #divCanvas {
+        margin:auto;
+      }
+
       #gameOverMsg {
         font-size: xx-large;
         color: red;
@@ -43,14 +52,12 @@
   </head>
   <body onload="setup();">
     
-    <div width="100%" align="center">
-      <canvas id="cnvsMain" width="850" height="500">
-        
+    <div width="100%" align="center" id="divCanvas">
+      <canvas id="cnvsMain" width="850" height="300" align="center">
       </canvas>
-      <div>
-        Player: <span id="spnPlayer"></span>
-      </div>
     </div>
-
+    <div id="divPlayer">
+      Player: <span id="spnPlayer"></span>
+    </div>
   </body>
 </html>
