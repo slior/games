@@ -32,6 +32,11 @@ class MancalaGame
     this.showMsg = _showMsgCallback;
     
     this.canvas = maybe(initCanvas(cnvsELID));
+    this._initializeBoardDrawing();
+  }
+
+  _initializeBoardDrawing()
+  {
     this.canvas.ifPresent(cnvs => {
       initDrawingElements(this.board.totalCellCount());
       drawBoard(cnvs,CELL_COUNT);
@@ -40,38 +45,57 @@ class MancalaGame
   }
 
   handleCellClick(boardCell)
-  { //todo: clean this up
-    if (this.gameDone)
+  {
+    if (!this.gameDone)
     {
-      dbg("Game over, get outta here");
-      return;
-    }
-    this.showMsg(" ")
-    if (!this.isValidMove(boardCell))
-      this.showMsg("Invalid Move")
-    else 
-    {
-      let lastCell = this.playCell(boardCell);
-      let lastCellIsHomeOfCurrentPlayer = this.player1Playing(this.board.isPlayer1Home(lastCell)) ||
-                                          this.player2Playing(this.board.isPlayer2Home(lastCell))
-      if (!lastCellIsHomeOfCurrentPlayer)
-        this.updatePlayerCallback(this.togglePlayer());
+      this._resetGameMessagePanel();
+      if (this.isValidMove(boardCell))
+        this._makeMove(boardCell)
       else 
-        this.showMsg("Extra Turn")
-      
-      let currentPlayerHasNoMoreMoves = this.player1Playing(this.board.allPlayer1Cells(c => this.board.stonesIn(c) <= 0)) ||
-                                        this.player2Playing(this.board.allPlayer2Cells(c => this.board.stonesIn(c) <= 0))
-      if (currentPlayerHasNoMoreMoves)
-        this.gameOver();
-
-      this.canvas.ifPresent(cnvs => {
-        drawBoardState(cnvs,this.board,this)
-      })
-      
+        this.showMsg("Invalid Move")
     }
+    else dbg("Game over, stop procrastinating")
   }
 
-  gameOver()
+  _makeMove(boardCell)
+  {
+    let lastCell = this.playCell(boardCell);
+    this._togglePlayerOrExtraTurn(lastCell)
+    this._checkAndDeclareGameOverIfNecessary()
+    this._redraw();
+  }
+
+  _resetGameMessagePanel()
+  {
+    this.showMsg(" ")
+  }
+
+  _togglePlayerOrExtraTurn(lastCell)
+  {
+    let lastCellIsHomeOfCurrentPlayer = this.player1Playing(this.board.isPlayer1Home(lastCell)) ||
+                                        this.player2Playing(this.board.isPlayer2Home(lastCell))
+    if (!lastCellIsHomeOfCurrentPlayer)
+      this.updatePlayerCallback(this.togglePlayer());
+    else 
+      this.showMsg("Extra Turn")
+  }
+
+  _checkAndDeclareGameOverIfNecessary()
+  {
+    let currentPlayerHasNoMoreMoves = this.player1Playing(this.board.allPlayer1Cells(c => this.board.stonesIn(c) <= 0)) ||
+    this.player2Playing(this.board.allPlayer2Cells(c => this.board.stonesIn(c) <= 0))
+    if (currentPlayerHasNoMoreMoves)
+      this._gameOver();
+  }
+
+  _redraw()
+  {
+    this.canvas.ifPresent(cnvs => {
+      drawBoardState(cnvs,this.board,this)
+    })
+  }
+
+  _gameOver()
   {
     let player1StoneCount = this.board.player1StoneCount();
     let player2StoneCount = this.board.player2StoneCount();
@@ -106,25 +130,29 @@ class MancalaGame
     let _ = this.board;
     let targetCells =  range(1,_.stonesIn(boardCell)).map(steps => _.cellFrom(boardCell,steps))
     let lastCell = targetCells[targetCells.length-1];
-    let isLastCellEmpty = _.stonesIn(lastCell) == 0;
+    let lastCellWasEmpty = _.stonesIn(lastCell) == 0;
+    targetCells.forEach(c => _.addStoneTo(c));
+    this._checkAndCaptureIfNecessary(lastCell,lastCellWasEmpty);
+    
+    _.setCellStoneCount(boardCell,0);
+
+    return lastCell;
+  }
+
+  _checkAndCaptureIfNecessary(lastCell,lastCellWasEmpty)
+  {
+    let _ = this.board;
     let isLastCellAHomeCell = _.isPlayer1Home(lastCell) || _.isPlayer2Home(lastCell);
     let lastCellBelongsToCurrentPlayer = this.player1Playing(_.isPlayer1Cell(lastCell)) || 
                                          this.player2Playing(_.isPlayer2Cell(lastCell))
-    
-    targetCells.forEach(c => _.addStoneTo(c));
 
-    if (isLastCellEmpty && !isLastCellAHomeCell && lastCellBelongsToCurrentPlayer)
+    if (lastCellWasEmpty && !isLastCellAHomeCell && lastCellBelongsToCurrentPlayer)
     { //capture the stones from the other player
       let acrossCell = _.totalCellCount() - lastCell;
       dbg("Capturing stones from " + acrossCell + " to " + lastCell)
       _.setCellStoneCount(lastCell,_.stonesIn(lastCell) + _.stonesIn(acrossCell));
       _.setCellStoneCount(acrossCell,0);
     }
-
-    _.setCellStoneCount(boardCell,0);
-
-    return lastCell;
-
   }
 
   isValidMove(boardCell)
