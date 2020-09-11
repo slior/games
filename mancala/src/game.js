@@ -1,6 +1,6 @@
 
 
-const {initCanvas,drawBoard,drawBoardState,initDrawingElements} = require("./drawing.js")
+const {initCanvas,drawBoard,drawBoardState,initDrawingElements,highlightP1Cells} = require("./drawing.js")
 const {Board} = require("./board.js")
 const {maybe,requires,range,dbg} = require("./util.js")
 
@@ -41,6 +41,7 @@ class MancalaGame
       initDrawingElements(this.board.totalCellCount());
       drawBoard(cnvs,CELL_COUNT);
       drawBoardState(cnvs,this.board,this);
+      highlightP1Cells(cnvs)
     })
   }
 
@@ -149,9 +150,12 @@ class MancalaGame
     if (lastCellWasEmpty && !isLastCellAHomeCell && lastCellBelongsToCurrentPlayer)
     { //capture the stones from the other player
       let acrossCell = _.totalCellCount() - lastCell;
-      dbg("Capturing stones from " + acrossCell + " to " + lastCell)
-      _.setCellStoneCount(lastCell,_.stonesIn(lastCell) + _.stonesIn(acrossCell));
+      let targetHome = this.player == PLAYER.one ? _.player1Home() : _.player2Home();
+      let totalCapturedStones = _.stonesIn(lastCell) + _.stonesIn(acrossCell);
+      dbg("Capturing stones from " + acrossCell + " and " + lastCell + " to " + targetHome + ". Total: " + totalCapturedStones )
+      _.setCellStoneCount(targetHome,_.stonesIn(targetHome) + totalCapturedStones);
       _.setCellStoneCount(acrossCell,0);
+      _.setCellStoneCount(lastCell,0);
     }
   }
 

@@ -21,6 +21,7 @@ function initCanvas(canvasEl)
 function initDrawingElements(cellCount) 
 {
   range(1,cellCount).forEach( _ => stoneUIElement.push(None));
+  createHighlights();
 }
 
 function rememberUIObj(boardCell,el) { stoneUIElement[boardCell] = maybe(el); }
@@ -80,10 +81,44 @@ function drawBoard(cnvs,cellCount)
     function verticalLine(x,y,len) { cnvs.line(x,y,x,y+len); }
 
     function horizLine(x,y,len) { cnvs.line(x,y,x+len,y); } 
-
 }
 
 
+var p1Highlight = null;
+
+function createHighlights(cellCount)
+{
+
+  let _boardWidthInCells = boardWidthInCells(cellCount);
+  let l1 = hLine(0,0,(_boardWidthInCells-1)*CELL_SIZE)
+  let l2 = hLine(0,CELL_SIZE,(_boardWidthInCells-1)*CELL_SIZE)
+  let l3 = vLine(0,0,CELL_SIZE)
+  let l4 = vLine((_boardWidthInCells-1)*CELL_SIZE,0,CELL_SIZE)
+  p1Highlight = new fabric.Group([l1,l2,l3,l4], {left : TOP_LEFT.x+CELL_SIZE, top : TOP_LEFT.y, selectable : false});
+
+  function hLine(x,y,len,color)
+  {
+    return new fabric.Line([x,y,x+len,y],{
+      stroke: color || 'red',
+      strokeWidth: 1,
+      selectable: false
+    })
+  }
+
+  function vLine(x,y,len,color)
+  {
+    return new fabric.Line([x,y,x,y+len],{
+      stroke: color || 'red',
+      strokeWidth: 1,
+      selectable: false
+    })
+  }
+}
+
+function highlightP1Cells(canvas)
+{
+  canvas.add(p1Highlight);
+}
 
 function drawBoardState(cnvs,board,controller)
 {
@@ -178,4 +213,5 @@ module.exports = {
     , initCanvas : initCanvas
     , drawBoardState : drawBoardState
     , initDrawingElements : initDrawingElements
+    , highlightP1Cells
   }
