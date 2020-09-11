@@ -1,5 +1,5 @@
 const {fabric} = require("fabric")
-const {range,dbg, ERR, maybe,None} = require("./util.js")
+const {range,dbg, ERR, maybe,None,requires} = require("./util.js")
 
 
 let CELL_SIZE = 50;
@@ -21,7 +21,7 @@ function initCanvas(canvasEl)
 function initDrawingElements(cellCount) 
 {
   range(1,cellCount).forEach( _ => stoneUIElement.push(None));
-  createHighlights();
+  createHighlights(cellCount);
 }
 
 function rememberUIObj(boardCell,el) { stoneUIElement[boardCell] = maybe(el); }
@@ -85,39 +85,35 @@ function drawBoard(cnvs,cellCount)
 
 
 var p1Highlight = null;
+var p2Highlight = null;
 
 function createHighlights(cellCount)
 {
-
+  requires(cellCount > 0, "Invalid cell count when creating highlights")
   let _boardWidthInCells = boardWidthInCells(cellCount);
-  let l1 = hLine(0,0,(_boardWidthInCells-1)*CELL_SIZE)
-  let l2 = hLine(0,CELL_SIZE,(_boardWidthInCells-1)*CELL_SIZE)
-  let l3 = vLine(0,0,CELL_SIZE)
-  let l4 = vLine((_boardWidthInCells-1)*CELL_SIZE,0,CELL_SIZE)
-  p1Highlight = new fabric.Group([l1,l2,l3,l4], {left : TOP_LEFT.x+CELL_SIZE, top : TOP_LEFT.y, selectable : false});
+  let w = (_boardWidthInCells -2)* CELL_SIZE;
+  let t = TOP_LEFT.y;
+  let l = TOP_LEFT.x + CELL_SIZE; 
+  let boardHeightInCells = 3;
+  p1Highlight = new fabric.Line([l,t,l+w,t],{selectable:false,stroke:'red',strokeWidth:3})
+  p2Highlight = new fabric.Line([l,t+(boardHeightInCells*CELL_SIZE),l+w,t+(boardHeightInCells*CELL_SIZE)],{selectable:false,stroke:'red',strokeWidth:3})
 
-  function hLine(x,y,len,color)
-  {
-    return new fabric.Line([x,y,x+len,y],{
-      stroke: color || 'red',
-      strokeWidth: 1,
-      selectable: false
-    })
-  }
-
-  function vLine(x,y,len,color)
-  {
-    return new fabric.Line([x,y,x,y+len],{
-      stroke: color || 'red',
-      strokeWidth: 1,
-      selectable: false
-    })
-  }
 }
 
-function highlightP1Cells(canvas)
+function toggleHighlights(canvas,player)
 {
-  canvas.add(p1Highlight);
+  requires(player == 1 || player == 2,"Invalid player when switching highlights")
+  switch (player)
+  {
+    case 1 : 
+      canvas.add(p1Highlight); 
+      canvas.remove(p2Highlight);
+      break;
+    case 2 : 
+      canvas.add(p2Highlight);
+      canvas.remove(p1Highlight);
+      break;
+  }
 }
 
 function drawBoardState(cnvs,board,controller)
@@ -213,5 +209,5 @@ module.exports = {
     , initCanvas : initCanvas
     , drawBoardState : drawBoardState
     , initDrawingElements : initDrawingElements
-    , highlightP1Cells
+    , toggleHighlights
   }

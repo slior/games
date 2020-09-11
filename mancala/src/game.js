@@ -1,6 +1,6 @@
 
 
-const {initCanvas,drawBoard,drawBoardState,initDrawingElements,highlightP1Cells} = require("./drawing.js")
+const {initCanvas,drawBoard,drawBoardState,initDrawingElements,toggleHighlights} = require("./drawing.js")
 const {Board} = require("./board.js")
 const {maybe,requires,range,dbg} = require("./util.js")
 
@@ -10,10 +10,12 @@ const PLAYER = {
   one : {
     toString : () => "ONE"
     , theOtherOne : () => PLAYER.two
+    , number : 1
   }
   , two : {
     toString : () => "TWO"
     , theOtherOne : () => PLAYER.one
+    , number : 2
   } }
 
 class MancalaGame
@@ -41,7 +43,7 @@ class MancalaGame
       initDrawingElements(this.board.totalCellCount());
       drawBoard(cnvs,CELL_COUNT);
       drawBoardState(cnvs,this.board,this);
-      highlightP1Cells(cnvs)
+      toggleHighlights(cnvs,this.player.number)
     })
   }
 
@@ -169,6 +171,9 @@ class MancalaGame
   togglePlayer()
   {
     this.player = this.player.theOtherOne();
+    this.canvas.ifPresent( cnvs => {
+      toggleHighlights(cnvs,this.player.number);
+    })
     return this.player;
   }
 }
