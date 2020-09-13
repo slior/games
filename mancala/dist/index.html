@@ -39,13 +39,18 @@
       <script src="main.js"></script>
       <script>
 
+        const SIZE_PARAM_NAME = 'size';
+        const DEFAULT_GAME_SIZE = 14;
+        const GAME_SIZE_UPPER_BOUND = 28;
+        const GAME_SIZE_LOWER_BOUND = 6;
+
         function $(id) { return document.getElementById(id); }
 
         var game = null;
 
         function setup()
         {
-          game = new main.MancalaGame('cnvsMain',updateCurrentPlayer,showMsg);
+          game = new main.MancalaGame(resolveGameSize(),'cnvsMain',updateCurrentPlayer,showMsg);
         }
 
         function updateCurrentPlayer(player)
@@ -56,6 +61,20 @@
         function showMsg(msg)
         {
           $('divMsg').innerHTML = msg;
+        }
+
+        function resolveGameSize()
+        {
+          let params = new URLSearchParams(window.location.search);
+          let size = (params.has(SIZE_PARAM_NAME) && !isNaN(params.get(SIZE_PARAM_NAME))) ? 
+                params.get(SIZE_PARAM_NAME)*1 : DEFAULT_GAME_SIZE;
+          let ret = Math.max(  //we bound the game size between the minimum and the upper bound
+                      Math.min(size
+                              ,GAME_SIZE_UPPER_BOUND || DEFAULT_GAME_SIZE)
+                      ,GAME_SIZE_LOWER_BOUND);
+          if (ret % 2 != 0) ret -= 1; //we have to make sure it's a divisble by 2.
+          console.log("Game size: " + ret);
+          return ret;
         }
 
       </script>

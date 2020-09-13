@@ -4,8 +4,6 @@ const {initCanvas,drawBoard,drawBoardState,initDrawingElements,toggleHighlights}
 const {Board} = require("./board.js")
 const {maybe,requires,range,dbg} = require("./util.js")
 
-const CELL_COUNT = 14;
-
 const PLAYER = { 
   one : {
     toString : () => "ONE"
@@ -18,15 +16,17 @@ const PLAYER = {
     , number : 2
   } }
 
+
 class MancalaGame
 {
-  constructor(cnvsELID,_updatePlayerCallback,_showMsgCallback)
+  constructor(gameSize,cnvsELID,_updatePlayerCallback,_showMsgCallback)
   {
     requires(_updatePlayerCallback != null,"Must have a player update callback")
     requires(_showMsgCallback != null,"Must have a callback to show messages")
 
+    this.cellCount = gameSize;
     this.gameDone = false;
-    this.board = new Board(CELL_COUNT);
+    this.board = new Board(this.cellCount);
     this.player = PLAYER.one;
     this.updatePlayerCallback = _updatePlayerCallback;
     this.updatePlayerCallback(this.player);
@@ -41,7 +41,7 @@ class MancalaGame
   {
     this.canvas.ifPresent(cnvs => {
       initDrawingElements(this.board.totalCellCount());
-      drawBoard(cnvs,CELL_COUNT);
+      drawBoard(cnvs,this.cellCount);
       drawBoardState(cnvs,this.board,this);
       toggleHighlights(cnvs,this.player.number)
     })
@@ -86,7 +86,7 @@ class MancalaGame
   _checkAndDeclareGameOverIfNecessary()
   {
     let currentPlayerHasNoMoreMoves = this.player1Playing(this.board.allPlayer1Cells(c => this.board.stonesIn(c) <= 0)) ||
-    this.player2Playing(this.board.allPlayer2Cells(c => this.board.stonesIn(c) <= 0))
+                                      this.player2Playing(this.board.allPlayer2Cells(c => this.board.stonesIn(c) <= 0))
     if (currentPlayerHasNoMoreMoves)
       this._gameOver();
   }
