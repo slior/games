@@ -1,8 +1,8 @@
 
 
-const {initCanvas,drawBoard,drawBoardState,initDrawingElements,toggleHighlights} = require("./drawing.js")
+const {BoardUI} = require("./drawing.js")
 const {Board} = require("./board.js")
-const {maybe,requires,range,dbg} = require("./util.js")
+const {requires,range,dbg} = require("./util.js")
 
 const PLAYER = { 
   one : {
@@ -33,18 +33,8 @@ class MancalaGame
 
     this.showMsg = _showMsgCallback;
     
-    this.canvas = maybe(initCanvas(cnvsELID));
-    this._initializeBoardDrawing();
-  }
-
-  _initializeBoardDrawing()
-  {
-    this.canvas.ifPresent(cnvs => {
-      initDrawingElements(this.board.totalCellCount());
-      drawBoard(cnvs,this.cellCount);
-      drawBoardState(cnvs,this.board,this);
-      toggleHighlights(cnvs,this.player.number)
-    })
+    this.boardUI = new BoardUI(cnvsELID,this.cellCount,this)
+    this.boardUI.initializeBoardDrawing();
   }
 
   handleCellClick(boardCell)
@@ -93,9 +83,7 @@ class MancalaGame
 
   _redraw()
   {
-    this.canvas.ifPresent(cnvs => {
-      drawBoardState(cnvs,this.board,this)
-    })
+    this.boardUI.drawBoardState(this.board,this);
   }
 
   _gameOver()
@@ -127,6 +115,7 @@ class MancalaGame
     return this.player == PLAYER.two && (typeof(andAlso) == undefined ? true : andAlso);
   }
   
+  theBoard() { return this.board }
 
   playCell(boardCell)
   {
@@ -171,9 +160,7 @@ class MancalaGame
   togglePlayer()
   {
     this.player = this.player.theOtherOne();
-    this.canvas.ifPresent( cnvs => {
-      toggleHighlights(cnvs,this.player.number);
-    })
+    this.boardUI.toggleHighlights(this.player.number);
     return this.player;
   }
 }
