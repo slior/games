@@ -1,5 +1,13 @@
 
 
+
+/**
+ * 
+ * Rules: https://endlessgames.com/wp-content/uploads/Mancala_Instructions.pdf
+ * 
+ */
+
+
 const {BoardUI} = require("./drawing.js")
 const {Board} = require("./board.js")
 const {requires,range,dbg} = require("./util.js")
@@ -120,7 +128,8 @@ class MancalaGame
   playCell(boardCell)
   {
     let _ = this.board;
-    let targetCells =  range(1,_.stonesIn(boardCell)).map(steps => _.cellFrom(boardCell,steps))
+    let targetCells = this._calculateTargetCellsForMove(boardCell);
+    dbg("Adding stones to cells: " + targetCells)
     let lastCell = targetCells[targetCells.length-1];
     let lastCellWasEmpty = _.stonesIn(lastCell) == 0;
     targetCells.forEach(c => _.addStoneTo(c));
@@ -130,6 +139,26 @@ class MancalaGame
 
     return lastCell;
   }
+
+  _calculateTargetCellsForMove(fromCell)
+  {
+    let _ = this.board;
+    let stepCount = _.stonesIn(fromCell);
+    dbg("Playing " + stepCount + " stones from cell " + fromCell)
+    let targetCells =  range(1,stepCount)
+                        .map(steps => _.cellFrom(fromCell,steps,this.player.number))
+                        .filter(c => c != _.homeOf(this.player.theOtherOne().number)) //remove, if applicable, the cell of the other player's mancala
+    while (targetCells.length < stepCount) //add any cells, until we reach a situation where we have enough holes to fill (per the stone count in the played cell)
+    {
+      let addedCell = _.cellFrom(targetCells[targetCells.length-1],1)
+      if (addedCell == _.homeOf(this.player.theOtherOne().number))
+        targetCells.push(_.cellFrom(addedCell,1))
+      else
+        targetCells.push(addedCell)
+    }
+    return targetCells;
+  }
+
 
   _checkAndCaptureIfNecessary(lastCell,lastCellWasEmpty)
   {

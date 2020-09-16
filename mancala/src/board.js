@@ -1,6 +1,6 @@
 // The data structure representing the board
 
-const {range,ERR,dbg} = require("./util.js");
+const {range,ERR,dbg,requires} = require("./util.js");
 
 const INITIAL_STONE_COUNT = 4; //per player cell
 
@@ -66,11 +66,25 @@ class Board
      * Calculate a target cell, given a new cell, walking counter-clockwise a number of steps as given
      * @param {number} cell The cell we're starting from
      * @param {number} steps The number of steps to take from this cell, counter-clockwise, to reach the new cell
+     * @param {number} currentPlayer The current playing player, either 1 or 2.
      */
-    cellFrom(cell,steps)
+    cellFrom(cell,steps,currentPlayer)
     {
-        //walk backwards, and if we pass cell 0, add the number of cells again.
-        return cell - steps + (cell < steps ? this.totalCellCount() : 0);
+        //walk backwards (counter-clockwise), and if we pass cell 0, add the number of cells again.
+        var ret = cell-steps;
+        if (ret < 0) ret += this.totalCellCount();
+        return ret;
+    }
+
+    /**
+     * Retrieve the cell number for the home (Mancala) of the given player.
+     * @param {numer} player The number of the player whose Mancala we're seeking (1 or 2)
+     * @returns The cell number for the given player's Mancala ( either 0 or totalCellCount/2)
+     */
+    homeOf(player)
+    {
+        requires(player == 1 || player == 2,"Player number can be either 1 or 2");
+        return player == 1 ? this.player1Home() : this.player2Home();
     }
 
     addStoneTo(cell)
