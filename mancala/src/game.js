@@ -10,24 +10,29 @@
 
 const {BoardUI} = require("./drawing.js")
 const {Board} = require("./board.js")
-const {requires,range,dbg} = require("./util.js")
+const {requires,range,dbg,None,maybe} = require("./util.js")
+const {SimpleAIPlayer} = require("./SimpleAIPlayer.js")
 
 const PLAYER = { 
   one : {
     toString : () => "ONE"
     , theOtherOne : () => PLAYER.two
     , number : 1
+    , ai : () => None
+
   }
   , two : {
     toString : () => "TWO"
     , theOtherOne : () => PLAYER.one
     , number : 2
+    , ai : () => PLAYER.two._aiPlayer
+    , _aiPlayer : None
   } }
 
 
 class MancalaGame
 {
-  constructor(gameSize,cnvsELID,_updatePlayerCallback,_showMsgCallback)
+  constructor(gameSize,cnvsELID,_updatePlayerCallback,_showMsgCallback,requestedAIPlayers)
   {
     requires(_updatePlayerCallback != null,"Must have a player update callback")
     requires(_showMsgCallback != null,"Must have a callback to show messages")
@@ -35,14 +40,22 @@ class MancalaGame
     this.cellCount = gameSize;
     this.gameDone = false;
     this.board = new Board(this.cellCount);
+
+
     this.player = PLAYER.one;
     this.updatePlayerCallback = _updatePlayerCallback;
     this.updatePlayerCallback(this.player);
+    if (requestedAIPlayers.p2)
+    {
+      dbg("Setting up AI player for player 2")
+      PLAYER.two._aiPlayer = maybe(new SimpleAIPlayer()) //should actually query the 'p2' parameter, but for now we have only 1 option.
+    }
 
     this.showMsg = _showMsgCallback;
     
     this.boardUI = new BoardUI(cnvsELID,this.cellCount,this)
     this.boardUI.initializeBoardDrawing();
+
   }
 
   handleCellClick(boardCell)
@@ -64,6 +77,12 @@ class MancalaGame
     this._togglePlayerOrExtraTurn(lastCell)
     this._checkAndDeclareGameOverIfNecessary()
     this._redraw();
+
+    this.player.ai().ifPresent(aiPlayer => {
+      let aiMove = aiPlayer.nextMove(this.board,this.player.number)
+      setTimeout(() => { this._makeMove(aiMove)}, 500) //artifical wait, so we can "see" the ai playing
+      // this._makeMove()
+    })
   }
 
   _resetGameMessagePanel()
@@ -129,7 +148,6 @@ class MancalaGame
   {
     let _ = this.board;
     let targetCells = this._calculateTargetCellsForMove(boardCell);
-    dbg("Adding stones to cells: " + targetCells)
     let lastCell = targetCells[targetCells.length-1];
     let lastCellWasEmpty = _.stonesIn(lastCell) == 0;
     targetCells.forEach(c => _.addStoneTo(c));
