@@ -31,6 +31,8 @@ class SimpleAIPlayer
         dbg("Playing cell: " + maxStoneCell + " with " + board.stonesIn(maxStoneCell) + " for player " + side);
         return maxStoneCell;
     }
+
+    toString() { return "SimpleAIPlayer"; }
 }
 
 module.exports = {

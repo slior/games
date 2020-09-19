@@ -12,6 +12,7 @@ const {BoardUI} = require("./drawing.js")
 const {Board} = require("./board.js")
 const {requires,range,dbg,None,maybe} = require("./util.js")
 const {SimpleAIPlayer} = require("./SimpleAIPlayer.js")
+const {RandomAIPlayer} = require("./RandomAIPlayer.js")
 
 const PLAYER = { 
   one : {
@@ -65,7 +66,14 @@ class MancalaGame
 
     function determineAIPlayer(requestedAI)
     {
-      return requestedAI ? new SimpleAIPlayer() : null;
+      var ret = null;
+      switch (requestedAI.toLowerCase())
+      {
+        case "simple" : ret = new SimpleAIPlayer(); break;
+        case "random" : ret = new RandomAIPlayer(); break;
+        default : ret = null;
+      }
+      return ret;
     }
   }
 
