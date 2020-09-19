@@ -44,6 +44,7 @@
         const GAME_SIZE_UPPER_BOUND = 28;
         const GAME_SIZE_LOWER_BOUND = 6;
         const P2_PARAM_NAME = "p2";
+        const P1_PARAM_NAME = "p1";
 
         function $(id) { return document.getElementById(id); }
 
@@ -51,7 +52,8 @@
 
         function setup()
         {
-          game = new main.MancalaGame(resolveGameSize(),'cnvsMain',updateCurrentPlayer,showMsg, { p2 : resolveRequestedAI()});
+          game = new main.MancalaGame(resolveGameSize(),'cnvsMain',updateCurrentPlayer,showMsg, resolveRequestedAI());
+          game.start();
         }
 
         function updateCurrentPlayer(player)
@@ -81,7 +83,9 @@
         function resolveRequestedAI()
         {
           let params = new URLSearchParams(window.location.search);
-          return params.has(P2_PARAM_NAME) ? params.get(P2_PARAM_NAME) : "";
+          let p2 = params.has(P2_PARAM_NAME) ? params.get(P2_PARAM_NAME) : "";
+          let p1 = params.has(P1_PARAM_NAME) ? params.get(P1_PARAM_NAME) : "";
+          return { p1 : p1, p2 : p2}
         }
 
       </script>

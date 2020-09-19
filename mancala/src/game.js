@@ -18,7 +18,8 @@ const PLAYER = {
     toString : () => "ONE"
     , theOtherOne : () => PLAYER.two
     , number : 1
-    , ai : () => None
+    , ai : () => PLAYER.one._aiPlayer
+    , _aiPlayer : None
 
   }
   , two : {
@@ -45,17 +46,32 @@ class MancalaGame
     this.player = PLAYER.one;
     this.updatePlayerCallback = _updatePlayerCallback;
     this.updatePlayerCallback(this.player);
-    if (requestedAIPlayers.p2)
-    {
-      dbg("Setting up AI player for player 2")
-      PLAYER.two._aiPlayer = maybe(new SimpleAIPlayer()) //should actually query the 'p2' parameter, but for now we have only 1 option.
-    }
+    this._setupAIPlayersIfRequested(requestedAIPlayers);
 
     this.showMsg = _showMsgCallback;
     
     this.boardUI = new BoardUI(cnvsELID,this.cellCount,this)
     this.boardUI.initializeBoardDrawing();
 
+  }
+
+  _setupAIPlayersIfRequested(requestedAIPlayers)
+  {
+    dbg("Setting AI Players...");
+    PLAYER.one._aiPlayer = maybe(determineAIPlayer(requestedAIPlayers.p1))
+    PLAYER.two._aiPlayer = maybe(determineAIPlayer(requestedAIPlayers.p2))
+
+    dbg("AI Players: P1: " + PLAYER.one._aiPlayer + ", P2: " + PLAYER.two._aiPlayer);
+
+    function determineAIPlayer(requestedAI)
+    {
+      return requestedAI ? new SimpleAIPlayer() : null;
+    }
+  }
+
+  start()
+  {
+    this._makeNextMoveIfCurrentPlayerIsAI();
   }
 
   handleCellClick(boardCell)
@@ -73,16 +89,24 @@ class MancalaGame
 
   _makeMove(boardCell)
   {
+    this._resetGameMessagePanel();
     let lastCell = this.playCell(boardCell);
     this._togglePlayerOrExtraTurn(lastCell)
     this._checkAndDeclareGameOverIfNecessary()
     this._redraw();
 
-    this.player.ai().ifPresent(aiPlayer => {
-      let aiMove = aiPlayer.nextMove(this.board,this.player.number)
-      setTimeout(() => { this._makeMove(aiMove)}, 500) //artifical wait, so we can "see" the ai playing
-      // this._makeMove()
-    })
+    this._makeNextMoveIfCurrentPlayerIsAI()
+  }
+
+  _makeNextMoveIfCurrentPlayerIsAI()
+  {
+    if (!this.gameDone)
+    {
+      this.player.ai().ifPresent(aiPlayer => {
+        let aiMove = aiPlayer.nextMove(this.board,this.player.number)
+        setTimeout(() => { this._makeMove(aiMove)}, 200) //artifical wait, so we can "see" the ai playing
+      })
+    }
   }
 
   _resetGameMessagePanel()
