@@ -52,8 +52,20 @@
 
         function setup()
         {
-          game = new main.MancalaGame(resolveGameSize(),'cnvsMain',updateCurrentPlayer,showMsg, resolveRequestedAI());
+          game = new main.MancalaGame(resolveGameSize(),'cnvsMain',updateCurrentPlayer,showMsg, resolveRequestedAI(),gameOver);
           game.start();
+        }
+
+        function gameOver(results)
+        {
+          let a = ["Game Over","# Stones P1:" + results.player1StoneCount,"# Stones P2: " + results.player2StoneCount];
+          if (!results.isDraw)
+            a.push(`Player ${results.winner} Wins!`)
+          else 
+            a.push('Draw!')
+
+          showMsg(a.join('<br/>'))
+
         }
 
         function updateCurrentPlayer(player)

@@ -34,14 +34,16 @@ const PLAYER = {
 
 class MancalaGame
 {
-  constructor(gameSize,cnvsELID,_updatePlayerCallback,_showMsgCallback,requestedAIPlayers)
+  constructor(gameSize,cnvsELID,_updatePlayerCallback,_showMsgCallback,requestedAIPlayers,_gameOverCallback)
   {
     requires(_updatePlayerCallback != null,"Must have a player update callback")
     requires(_showMsgCallback != null,"Must have a callback to show messages")
+    requires(_gameOverCallback != null,"Game over callback must be not null")
 
     this.cellCount = gameSize;
     this.gameDone = false;
     this.board = new Board(this.cellCount);
+    this.gameOverCallback = _gameOverCallback
 
 
     this.player = PLAYER.one;
@@ -51,8 +53,12 @@ class MancalaGame
 
     this.showMsg = _showMsgCallback;
     
-    this.boardUI = new BoardUI(cnvsELID,this.cellCount,this)
-    this.boardUI.initializeBoardDrawing();
+    if (cnvsELID)
+    {
+      this.boardUI = maybe(new BoardUI(cnvsELID,this.cellCount,this))
+      this.boardUI.ifPresent(bui => bui.initializeBoardDrawing());
+    }
+    else this.boardUI = None; //headless mode
 
   }
 
@@ -142,7 +148,7 @@ class MancalaGame
 
   _redraw()
   {
-    this.boardUI.drawBoardState(this.board,this);
+    this.boardUI.ifPresent(_ => _.drawBoardState(this.board,this));
   }
 
   _gameOver()
@@ -150,15 +156,26 @@ class MancalaGame
     let player1StoneCount = this.board.player1StoneCount();
     let player2StoneCount = this.board.player2StoneCount();
 
-    let a = ["Game Over","# Stones P1:" + player1StoneCount,"# Stones P2: " + player2StoneCount];
+    let results = { player1StoneCount : player1StoneCount, player2StoneCount : player2StoneCount}
+
     switch (true)
     {
-      case player1StoneCount > player2StoneCount : a.push("Player 1 Wins!"); break;
-      case player2StoneCount > player1StoneCount : a.push("Player 2 Wins!"); break;
-      default : a.push("Draw!"); break;
+      case player1StoneCount > player2StoneCount : results.winner = 1; break;
+      case player2StoneCount > player1StoneCount : results.winner = 2; break;
+      default : results.isDraw = true; break;
     }
+
+    this.gameOverCallback(results);
+
+    // let a = ["Game Over","# Stones P1:" + player1StoneCount,"# Stones P2: " + player2StoneCount];
+    // switch (true)
+    // {
+    //   case player1StoneCount > player2StoneCount : a.push("Player 1 Wins!"); break;
+    //   case player2StoneCount > player1StoneCount : a.push("Player 2 Wins!"); break;
+    //   default : a.push("Draw!"); break;
+    // }
     
-    this.showMsg(a.join("<br/>"));
+    // this.showMsg(a.join("<br/>"));
     this.setGameOver();
   }
 
@@ -239,7 +256,7 @@ class MancalaGame
   togglePlayer()
   {
     this.player = this.player.theOtherOne();
-    this.boardUI.toggleHighlights(this.player.number);
+    this.boardUI.ifPresent(_ => _.toggleHighlights(this.player.number));
     return this.player;
   }
 }
