@@ -9,7 +9,7 @@ function range(start,finish)
 
 function ERR(msg) { throw new Error(msg); }
 
-function dbg(msg) { console.log(msg || 'MISSING DBG MSG') }
+function dbg(msg) { console.debug(msg || 'MISSING DBG MSG') }
 
 /**
  * Small syntactic sugar for coding assertions.
