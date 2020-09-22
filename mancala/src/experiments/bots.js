@@ -37,7 +37,7 @@ range(1,roundsToRun).forEach(round => {
     let startTime = Date.now();
     let game = new MancalaGame(14,'',_ => {},gameMsg,{p1 : program.player1, p2:program.player2},results => {
         let endTime = Date.now();
-        dbg (`Round ${round} Results: ${results} Time: ${endTime-startTime}`)
+        dbg (`Round ${round} Results: ${JSON.stringify(results)} Time: ${endTime-startTime}`)
         let line = []
         line.push(results.player1StoneCount)
         line.push(results.player2StoneCount)
