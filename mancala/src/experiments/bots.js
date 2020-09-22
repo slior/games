@@ -7,7 +7,7 @@ const fs = require('fs')
 
 const DEFAULT_ROUND_COUNT = 50;
 
-function gameMsg(s) { /*if (s.trim()) dbg(`( ${s})`)*/ }
+function gameMsg(s) { }
 console.debug = s => { }
 
 program
@@ -25,10 +25,10 @@ requires(program.player2,"Player 2 bot must be specified")
 let roundsToRun = (program.rounds || DEFAULT_ROUND_COUNT)*1;
 let outputFilename = program.out || `p1_${program.player1.toLowerCase()}__p2_${program.player2.toLowerCase()}__${roundsToRun}.csv`
 
-dbg(`Player 1 type: ${program.player1}`)
-dbg(`Player 2 type: ${program.player2}`)
-dbg(`Rounds: ${roundsToRun}`)
-dbg(`Output to: ${outputFilename}`)
+say(`Player 1 type: ${program.player1}`)
+say(`Player 2 type: ${program.player2}`)
+say(`Rounds: ${roundsToRun}`)
+say(`Output to: ${outputFilename}`)
 
 
 
@@ -50,7 +50,8 @@ range(1,roundsToRun).forEach(round => {
 })
 
 
-  dbg('Done.')
+say('Done.')
 
+function say (s) { console.info(s) }
 function dbg (s) { console.log(s)}
   
