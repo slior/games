@@ -13,6 +13,7 @@ const {Board} = require("./board.js")
 const {requires,range,dbg,None,maybe} = require("./util.js")
 const {SimpleAIPlayer} = require("./SimpleAIPlayer.js")
 const {RandomAIPlayer} = require("./RandomAIPlayer.js")
+const {CaptureGreedyAIPlayer} = require("./CaptureGreedyAIPlayer.js")
 
 const PLAYER = { 
   one : {
@@ -77,6 +78,7 @@ class MancalaGame
       {
         case "simple" : ret = new SimpleAIPlayer(); break;
         case "random" : ret = new RandomAIPlayer(); break;
+        case "capturegreedy" : ret = new CaptureGreedyAIPlayer(); break;
         default : ret = null;
       }
       return ret;

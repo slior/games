@@ -42,6 +42,16 @@ class Board
             ERR("Invalid function for player 1 cells")
     }
 
+    /**
+     * Return all the cell numbers for player 1.
+     */
+    player1Cells() { return range(1,this.cellCount/2-1); }
+
+    /**
+     * Return all the cell numbers for player 2
+     */
+    player2Cells() { return range(this.cellCount/2+1,this.cellCount-1) }
+
     setCellStoneCount(boardCell,cnt) { this.board[boardCell] = cnt }
     stonesIn(boardCell) { return this.board[boardCell]}
 
