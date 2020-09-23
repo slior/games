@@ -45,7 +45,7 @@ range(1,roundsToRun).forEach(round => {
         let line = []
         line.push(results.player1StoneCount)
         line.push(results.player2StoneCount)
-        line.push(results.winner || 0) //write the player who one or 0 for draw
+        line.push(results.winner || 0) //write the player who won or 0 for draw
         line.push(endTime-startTime) //the time in ms
         fs.appendFileSync(outputFilename,line.join(',') + "\n",{flag :'a'})
     })
