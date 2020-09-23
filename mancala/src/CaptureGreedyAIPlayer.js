@@ -28,11 +28,13 @@ class CaptureGreedyAIPlayer
 
        let playerCells = side == 1 ? board.player1Cells() : board.player2Cells();
        let maxPlayerCellIndex = Math.max(...playerCells);
+       dbg(`Max cell index for player ${side} is ${maxPlayerCellIndex}`)
        let emptyCellsForPlayer = playerCells.filter(c => board.stonesIn(c) == 0)
+       dbg(`Empty cells for player ${side} are: ${emptyCellsForPlayer}`)
        let cellThatCanReachEachEmpty = emptyCellsForPlayer.map(emptyCell => range(emptyCell+1,maxPlayerCellIndex)
-                                                                            .filter(c => board.stonesIn(c) == maxPlayerCellIndex - emptyCell)
+                                                                            .filter(c => board.stonesIn(c) == c - emptyCell)
                                                             )
-        dbg(`Cells taht can reach each empty: ${JSON.stringify(cellThatCanReachEachEmpty)}`)
+        dbg(`Cells that can reach each empty: ${JSON.stringify(cellThatCanReachEachEmpty)}`)
         let chosenCellPerEmptyCell = cellThatCanReachEachEmpty.map(cells => cells.length > 0 ? cells[0] : -1)
         let potentials = chosenCellPerEmptyCell.filter(c => c > -1)
 

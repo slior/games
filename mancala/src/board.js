@@ -132,7 +132,14 @@ class Board
     }
 }
 
+function createBoard(cellArr)
+{
+    let ret = new Board(cellArr.length)
+    range(0,cellArr.length-1).forEach(cell => ret.setCellStoneCount(cell,cellArr[cell]))
+    return ret;
+}
 
 module.exports = {
     Board
+    , createBoard
   }
