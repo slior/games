@@ -52,8 +52,14 @@ class Board
      */
     player2Cells() { return range(this.cellCount/2+1,this.cellCount-1) }
 
-    setCellStoneCount(boardCell,cnt) { this.board[boardCell] = cnt }
-    stonesIn(boardCell) { return this.board[boardCell]}
+    setCellStoneCount(boardCell,cnt) { 
+        requires(boardCell >= 0 && boardCell < this.totalCellCount(),`Board cell must be between 0 (inclusive) and ${this.cellCount} (exclusive)`)
+        this.board[boardCell] = cnt 
+    }
+    stonesIn(boardCell) { 
+        requires(boardCell >= 0 && boardCell < this.totalCellCount(),`Board cell must be between 0 (inclusive) and ${this.cellCount} (exclusive)`)
+        return this.board[boardCell]
+    }
 
     forAllCells(f)
     {
@@ -76,9 +82,8 @@ class Board
      * Calculate a target cell, given a new cell, walking counter-clockwise a number of steps as given
      * @param {number} cell The cell we're starting from
      * @param {number} steps The number of steps to take from this cell, counter-clockwise, to reach the new cell
-     * @param {number} currentPlayer The current playing player, either 1 or 2.
      */
-    cellFrom(cell,steps,currentPlayer)
+    cellFrom(cell,steps)
     {
         //walk backwards (counter-clockwise), and if we pass cell 0, add the number of cells again.
         var ret = cell-steps;
