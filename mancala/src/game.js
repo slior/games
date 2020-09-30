@@ -9,7 +9,7 @@
 
 
 const {BoardUI} = require("./drawing.js")
-const {Board} = require("./board.js")
+const {ImmutableBoard} = require("./ImmutableBoard.js")
 const {requires,range,dbg,None,maybe} = require("./util.js")
 const {SimpleAIPlayer} = require("./SimpleAIPlayer.js")
 const {RandomAIPlayer} = require("./RandomAIPlayer.js")
@@ -43,7 +43,8 @@ class MancalaGame
 
     this.cellCount = gameSize;
     this.gameDone = false;
-    this.board = new Board(this.cellCount);
+    this.boards = [];
+    this._pushNewBoard(new ImmutableBoard([],this.cellCount))
     this.gameOverCallback = _gameOverCallback
 
 
@@ -61,6 +62,21 @@ class MancalaGame
     }
     else this.boardUI = None; //headless mode
 
+  }
+
+  /**
+   * Push a new board to the stack of board states used in this game.
+   * @param {ImmutableBoard} ib The board to push
+   */
+  _pushNewBoard(ib)
+  {
+    requires(ib != null,"Board can't be null when pushed in game")
+    this.boards.push(ib)
+  }
+
+  _currentBoard()
+  {
+    return this.boards[this.boards.length-1]
   }
 
   _setupAIPlayersIfRequested(requestedAIPlayers)
@@ -119,7 +135,7 @@ class MancalaGame
     if (!this.gameDone)
     {
       this.player.ai().ifPresent(aiPlayer => {
-        let aiMove = aiPlayer.nextMove(this.board,this.player.number)
+        let aiMove = aiPlayer.nextMove(this._currentBoard(),this.player.number);
         setTimeout(() => { this._makeMove(aiMove)}, 200) //artifical wait, so we can "see" the ai playing
       })
     }
@@ -132,8 +148,8 @@ class MancalaGame
 
   _togglePlayerOrExtraTurn(lastCell)
   {
-    let lastCellIsHomeOfCurrentPlayer = this.player1Playing(this.board.isPlayer1Home(lastCell)) ||
-                                        this.player2Playing(this.board.isPlayer2Home(lastCell))
+    let lastCellIsHomeOfCurrentPlayer = this.player1Playing(this._currentBoard().isPlayer1Home(lastCell)) ||
+                                        this.player2Playing(this._currentBoard().isPlayer2Home(lastCell))
     if (!lastCellIsHomeOfCurrentPlayer)
       this.updatePlayerCallback(this.togglePlayer());
     else 
@@ -142,21 +158,21 @@ class MancalaGame
 
   _checkAndDeclareGameOverIfNecessary()
   {
-    let currentPlayerHasNoMoreMoves = this.player1Playing(this.board.allPlayer1Cells(c => this.board.stonesIn(c) <= 0)) ||
-                                      this.player2Playing(this.board.allPlayer2Cells(c => this.board.stonesIn(c) <= 0))
+    let currentPlayerHasNoMoreMoves = this.player1Playing(this._currentBoard().allPlayer1Cells(c => this._currentBoard().stonesIn(c) <= 0)) ||
+                                      this.player2Playing(this._currentBoard().allPlayer2Cells(c => this._currentBoard().stonesIn(c) <= 0))
     if (currentPlayerHasNoMoreMoves)
       this._gameOver();
   }
 
   _redraw()
   {
-    this.boardUI.ifPresent(_ => _.drawBoardState(this.board,this));
+    this.boardUI.ifPresent(_ => _.drawBoardState(this._currentBoard(),this));
   }
 
   _gameOver()
   {
-    let player1StoneCount = this.board.player1StoneCount();
-    let player2StoneCount = this.board.player2StoneCount();
+    let player1StoneCount = this._currentBoard().player1StoneCount();
+    let player2StoneCount = this._currentBoard().player2StoneCount();
 
     let results = { player1StoneCount : player1StoneCount, player2StoneCount : player2StoneCount}
 
@@ -169,58 +185,62 @@ class MancalaGame
 
     this.gameOverCallback(results);
 
-    // let a = ["Game Over","# Stones P1:" + player1StoneCount,"# Stones P2: " + player2StoneCount];
-    // switch (true)
-    // {
-    //   case player1StoneCount > player2StoneCount : a.push("Player 1 Wins!"); break;
-    //   case player2StoneCount > player1StoneCount : a.push("Player 2 Wins!"); break;
-    //   default : a.push("Draw!"); break;
-    // }
-    
-    // this.showMsg(a.join("<br/>"));
     this.setGameOver();
   }
 
   setGameOver() { this.gameDone = true; }
 
-  player1Playing(andAlso) 
+  player1Playing(andAlso,p)
   { 
-    return this.player == PLAYER.one && (typeof(andAlso) == undefined ? true : andAlso);
+    let pl = p || this.player
+    return pl == PLAYER.one && (typeof(andAlso) == undefined ? true : andAlso);
   }
 
-  player2Playing(andAlso)
+  player2Playing(andAlso,p)
   { 
-    return this.player == PLAYER.two && (typeof(andAlso) == undefined ? true : andAlso);
+    let pl = p || this.player
+    return pl == PLAYER.two && (typeof(andAlso) == undefined ? true : andAlso);
   }
   
-  theBoard() { return this.board }
+  theBoard() { return this._currentBoard(); }
 
-  playCell(boardCell)
+  makeMoveOnBoard(board,forPlayer,cell)
+  { //TODO: this should be factored out of the class
+    requires(board != null, "Board can't be null when calculating move on board")
+    requires(forPlayer == 1 || forPlayer == 2,"for player must be either 1 or 2")
+
+    let player = forPlayer == 1 ? PLAYER.one : PLAYER.two;
+
+    return this.playCell(cell,board,player);
+  }
+
+  playCell(boardCell,b,p)
   {
-    let _ = this.board;
-    let targetCells = this._calculateTargetCellsForMove(boardCell);
+    var _ = b || this._currentBoard();
+    let targetCells = this._calculateTargetCellsForMove(boardCell,b,p);
     let lastCell = targetCells[targetCells.length-1];
     let lastCellWasEmpty = _.stonesIn(lastCell) == 0;
-    targetCells.forEach(c => _.addStoneTo(c));
-    this._checkAndCaptureIfNecessary(lastCell,lastCellWasEmpty);
-    
-    _.setCellStoneCount(boardCell,0);
+    this._pushNewBoard(_.addStoneToEachOf(targetCells)
+                        ._setCellStoneCount(boardCell,0));
+
+    this._checkAndCaptureIfNecessary(lastCell,lastCellWasEmpty,b,p);
 
     return lastCell;
   }
 
-  _calculateTargetCellsForMove(fromCell)
+  _calculateTargetCellsForMove(fromCell,b,p)
   {
-    let _ = this.board;
+    let _ = b || this._currentBoard();
+    let pl = p || this.player
     let stepCount = _.stonesIn(fromCell);
     dbg("Playing " + stepCount + " stones from cell " + fromCell)
     let targetCells =  range(1,stepCount)
-                        .map(steps => _.cellFrom(fromCell,steps,this.player.number))
-                        .filter(c => c != _.homeOf(this.player.theOtherOne().number)) //remove, if applicable, the cell of the other player's mancala
+                        .map(steps => _.cellFrom(fromCell,steps,pl.number))
+                        .filter(c => c != _.homeOf(pl.theOtherOne().number)) //remove, if applicable, the cell of the other player's mancala
     while (targetCells.length < stepCount) //add any cells, until we reach a situation where we have enough holes to fill (per the stone count in the played cell)
     {
       let addedCell = _.cellFrom(targetCells[targetCells.length-1],1)
-      if (addedCell == _.homeOf(this.player.theOtherOne().number))
+      if (addedCell == _.homeOf(pl.theOtherOne().number))
         targetCells.push(_.cellFrom(addedCell,1))
       else
         targetCells.push(addedCell)
@@ -229,29 +249,32 @@ class MancalaGame
   }
 
 
-  _checkAndCaptureIfNecessary(lastCell,lastCellWasEmpty)
+  _checkAndCaptureIfNecessary(lastCell,lastCellWasEmpty,b,p)
   {
-    let _ = this.board;
+    let _ = b || this._currentBoard();
+    let pl = p || this.player;
     let isLastCellAHomeCell = _.isPlayer1Home(lastCell) || _.isPlayer2Home(lastCell);
-    let lastCellBelongsToCurrentPlayer = this.player1Playing(_.isPlayer1Cell(lastCell)) || 
-                                         this.player2Playing(_.isPlayer2Cell(lastCell))
+    let lastCellBelongsToCurrentPlayer = this.player1Playing(_.isPlayer1Cell(lastCell),pl) || 
+                                         this.player2Playing(_.isPlayer2Cell(lastCell),pl)
 
     if (lastCellWasEmpty && !isLastCellAHomeCell && lastCellBelongsToCurrentPlayer)
     { //capture the stones from the other player
       let acrossCell = _.totalCellCount() - lastCell;
-      let targetHome = this.player == PLAYER.one ? _.player1Home() : _.player2Home();
+      let targetHome = pl == PLAYER.one ? _.player1Home() : _.player2Home();
       let totalCapturedStones = _.stonesIn(lastCell) + _.stonesIn(acrossCell);
       dbg("Capturing stones from " + acrossCell + " and " + lastCell + " to " + targetHome + ". Total: " + totalCapturedStones )
-      _.setCellStoneCount(targetHome,_.stonesIn(targetHome) + totalCapturedStones);
-      _.setCellStoneCount(acrossCell,0);
-      _.setCellStoneCount(lastCell,0);
+      let newBoard = _._setCellStoneCount(targetHome,_.stonesIn(targetHome) + totalCapturedStones)
+                      ._setCellStoneCount(acrossCell,0)
+                      ._setCellStoneCount(lastCell,0);
+      this._pushNewBoard(newBoard);
+
     }
   }
 
   isValidMove(boardCell)
   {
-    let isValidPlayer1Move = this.player == PLAYER.one && this.board.isPlayer1Cell(boardCell);
-    let isValidPlayer2Move = this.player == PLAYER.two && this.board.isPlayer2Cell(boardCell);
+    let isValidPlayer1Move = this.player == PLAYER.one && this._currentBoard().isPlayer1Cell(boardCell);
+    let isValidPlayer2Move = this.player == PLAYER.two && this._currentBoard().isPlayer2Cell(boardCell);
     return isValidPlayer1Move || isValidPlayer2Move;
   }
 
