@@ -52,4 +52,21 @@ describe("Immutable Mancala Board", function() {
         })
     })
 
+    describe("cellFrom",function() {
+        it ("should return the correct cell, without going through Mancala", function() {
+            board.cellFrom(3,1).should.equal(2)
+            board.cellFrom(4,2).should.equal(2)
+            board.cellFrom(9,3).should.equal(6)
+        })
+
+        it ("should throw an error when given an invalid cell",function() {
+            (() => board.cellFrom(TEST_CELL_COUNT,1)).should.throw(/Invalid cell/)
+        })
+
+        it ("should cycle through the cells, when more steps than cell count is required", function() {
+            board.cellFrom(1,TEST_CELL_COUNT+2).should.equal(9)
+            board.cellFrom(7,TEST_CELL_COUNT+4).should.equal(3)
+        })
+    })
+
 })

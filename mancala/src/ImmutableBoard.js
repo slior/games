@@ -117,9 +117,10 @@ const MIN_CELL_COUNT = 6;
      */
     cellFrom(cell,steps)
     {
+        requires(cell >= 0 && cell < this.cellCount,`Invalid cell: must be between 0 and ${this.cellCount-1}`)
         //walk backwards (counter-clockwise), and if we pass cell 0, add the number of cells again.
         var ret = cell-steps;
-        if (ret < 0) ret += this.totalCellCount();
+        while (ret < 0) ret += this.totalCellCount();
         return ret;
     }
 
