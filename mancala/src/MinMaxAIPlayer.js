@@ -3,9 +3,13 @@ const {createBoard} = require("./board.js")
 
 class MinMaxAIPlayer
 {
-    constructor(game)
+    constructor(game,strength)
     {
+        requires(game != null,"Game can't be null when initializing MinMaxPlayer")
+        requires(strength >= 1 && strength <= 10,"MinMax player strength must be between 1 and 10 (inclusive)")
+
         this.game = game;
+        this.startingDepth = strength;
     }
 
     /**
@@ -17,11 +21,15 @@ class MinMaxAIPlayer
      */
     nextMove(board,side)
     {
-        let searchResult = this._minMaxSearch({board : board},10,side == 1);
+        let searchResult = this._minMaxSearch({board : board},this.startingDepth,side == 1);
         dbg(`MinMax's result: ${JSON.stringify(searchResult)}`)
         return searchResult.cellToMove || searchResult.cell;
     }
 
+    toString()
+    {
+        return `MinMax AI Player(${this.startingDepth})`
+    }
     /*
     function minimax(node, depth, maximizingPlayer) is  
         if depth ==0 or node is a terminal node then  

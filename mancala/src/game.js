@@ -100,12 +100,17 @@ class MancalaGame
     function determineAIPlayer(requestedAI,thisGame)
     {
       var ret = null;
-      switch ((requestedAI || "").toLowerCase())
+      let aiType = (requestedAI || "").toLowerCase()
+      switch (true)
       {
-        case "simple" : ret = new SimpleAIPlayer(); break;
-        case "random" : ret = new RandomAIPlayer(); break;
-        case "capturegreedy" : ret = new CaptureGreedyAIPlayer(); break;
-        case "minmax1" : ret = new MinMaxAIPlayer(thisGame); break;
+        case aiType == "simple" : ret = new SimpleAIPlayer(); break;
+        case aiType == "random" : ret = new RandomAIPlayer(); break;
+        case aiType == "capturegreedy" : ret = new CaptureGreedyAIPlayer(); break;
+        case aiType.startsWith('minmax') : 
+          let a = aiType.split('-')
+          requires(a.length == 2,"MinMax AI player type not formatted correctly, must specify strength: 'minmax-<strength>'")
+          ret = new MinMaxAIPlayer(thisGame,a[1]); 
+          break;
         default : ret = null;
       }
       return ret;
