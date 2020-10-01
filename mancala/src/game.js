@@ -35,6 +35,15 @@ const PLAYER = {
 
 class MancalaGame
 {
+  /**
+   * 
+   * @param {Number} gameSize The size of the board to play. Must be an even positive integer
+   * @param {String} cnvsELID The element id of the canvas element showing the board
+   * @param {PLAYER => void} _updatePlayerCallback A callback for updating the current player
+   * @param {String => void} _showMsgCallback A callback for showing messages to the player
+   * @param {Object} requestedAIPlayers An object with keys 'p1','p2' with string values denoting AI players to play. Can't be null.
+   * @param {Object => } _gameOverCallback A callback for notifying the game is ever; receives an object with keys for the 'winner' and player1/2 stone counts + whether the result is a draw.
+   */
   constructor(gameSize,cnvsELID,_updatePlayerCallback,_showMsgCallback,requestedAIPlayers,_gameOverCallback)
   {
     requires(_updatePlayerCallback != null,"Must have a player update callback")
@@ -90,7 +99,7 @@ class MancalaGame
     function determineAIPlayer(requestedAI)
     {
       var ret = null;
-      switch (requestedAI.toLowerCase())
+      switch ((requestedAI || "").toLowerCase())
       {
         case "simple" : ret = new SimpleAIPlayer(); break;
         case "random" : ret = new RandomAIPlayer(); break;
@@ -203,6 +212,16 @@ class MancalaGame
   }
   
   theBoard() { return this._currentBoard(); }
+
+  /**
+   * Revert the last board play, as if the last move didn't occur.
+   * @throws an error if there's only one board (the initial one)
+   */
+  revertBoard() 
+  {
+    if (this.boards.length <= 1) throw new Error("Can't revert initial state")
+    this.boards.pop();
+  }
 
   makeMoveOnBoard(board,forPlayer,cell)
   { //TODO: this should be factored out of the class
