@@ -21,7 +21,7 @@ class MinMaxAIPlayer
      */
     nextMove(board,side)
     {
-        let searchResult = this._minMaxSearch({board : board},this.startingDepth,side == 1);
+        let searchResult = this._minMaxSearch({board : board},this.startingDepth,true,side);
         dbg(`MinMax's result: ${JSON.stringify(searchResult)}`)
         return searchResult.cellToMove || searchResult.cell;
     }
@@ -48,12 +48,12 @@ class MinMaxAIPlayer
                 minEva= min(minEva, eva)         //gives minimum of the values  
             return minEva  
      */
-    _minMaxSearch(searchFromNode,depth,maximizingPlayer)
+    _minMaxSearch(searchFromNode,depth,maximizingPlayer,currentPlayer)
     {
-        let currentPlayer = maximizingPlayer ? 1 : 2;
+        // let currentPlayer = maximizingPlayer ? 1 : 2;
         if (depth == 0 || this._isTerminal(searchFromNode.board,currentPlayer))
         {
-            searchFromNode.score = this._evaluate(searchFromNode.board,currentPlayer);
+            searchFromNode.score = this._evaluate(searchFromNode.board,currentPlayer) * (maximizingPlayer ? 1 : -1);
             return searchFromNode;
         }
         
@@ -61,7 +61,7 @@ class MinMaxAIPlayer
         {
             var maxSubnode = {score:Number.NEGATIVE_INFINITY}
             this._childBoardsOf(searchFromNode.board,currentPlayer).forEach(searchNode => {
-                let childNode = this._minMaxSearch(searchNode,depth-1,!maximizingPlayer);
+                let childNode = this._minMaxSearch(searchNode,depth-1,!maximizingPlayer,currentPlayer == 1 ? 2 : 1);
                 if (childNode.score > maxSubnode.score)
                 {
                     childNode.cellToMove = searchNode.cell;
@@ -74,7 +74,7 @@ class MinMaxAIPlayer
         {
             var minSubnode = { score : Number.POSITIVE_INFINITY };
             this._childBoardsOf(searchFromNode.board,currentPlayer).forEach(searchNode => {
-                let childNode = this._minMaxSearch(searchNode,depth-1,!maximizingPlayer);
+                let childNode = this._minMaxSearch(searchNode,depth-1,!maximizingPlayer,currentPlayer == 1 ? 2 : 1);
                 if (childNode.score < minSubnode.score)
                 {
                     childNode.cellToMove = searchNode.cell;
