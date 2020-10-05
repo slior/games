@@ -1,15 +1,15 @@
 const {dbg,requires} = require("./util.js");
-const {createBoard} = require("./board.js")
 
 class MinMaxAIPlayer
 {
-    constructor(game,strength)
+    constructor(game,strength,_evalFunc = defaultEvalFunc)
     {
         requires(game != null,"Game can't be null when initializing MinMaxPlayer")
         requires(strength >= 1 && strength <= 10,"MinMax player strength must be between 1 and 10 (inclusive)")
 
         this.game = game;
         this.startingDepth = strength;
+        this.evalFunc = _evalFunc || defaultEvalFunc;
     }
 
     /**
@@ -50,7 +50,6 @@ class MinMaxAIPlayer
      */
     _minMaxSearch(searchFromNode,depth,maximizingPlayer,currentPlayer)
     {
-        // let currentPlayer = maximizingPlayer ? 1 : 2;
         if (depth == 0 || this._isTerminal(searchFromNode.board,currentPlayer))
         {
             searchFromNode.score = this._evaluate(searchFromNode.board,currentPlayer) * (maximizingPlayer ? 1 : -1);
@@ -81,7 +80,7 @@ class MinMaxAIPlayer
                     minSubnode = childNode
                 }
             })
-            dbg(`Minimizing player returning: ${JSON.stringify(minSubnode)}`)
+            // dbg(`Minimizing player returning: ${JSON.stringify(minSubnode)}`)
             return minSubnode;
         }
 
@@ -95,7 +94,7 @@ class MinMaxAIPlayer
 
     _evaluate(board,player)
     {
-        return player == 1 ? board.player1StoneCount() : board.player2StoneCount()
+        return this.evalFunc(board,player)
     }
 
     _childBoardsOf(board,player)
@@ -112,6 +111,32 @@ class MinMaxAIPlayer
     }
 }
 
+
+/**
+ * 
+ * @param {ImmutableBoard} board The board to evaluate
+ * @param {number (1|2)} player The number representing the current player. Either 1 or 2.
+ * @returns a number evaluating how good the board is for the current player (higher number - better board)
+ */
+function defaultEvalFunc(board,player)
+{
+    return player == 1 ? board.player1StoneCount() : board.player2StoneCount()
+}
+
+function stoneCountDiffEval(board,player)
+{
+    let player1Stones = board.player1StoneCount()
+    let player2Stones = board.player2StoneCount();
+
+    return player == 1 ? (player1Stones - player2Stones) : (player2Stones - player1Stones);
+}
+
+
+const EvaluationFunctions = {
+    "count_diff" : stoneCountDiffEval
+}
+
 module.exports = {
     MinMaxAIPlayer
+    , EvaluationFunctions
 }

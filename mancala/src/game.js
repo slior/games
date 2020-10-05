@@ -14,7 +14,7 @@ const {requires,range,dbg,None,maybe} = require("./util.js")
 const {SimpleAIPlayer} = require("./SimpleAIPlayer.js")
 const {RandomAIPlayer} = require("./RandomAIPlayer.js")
 const {CaptureGreedyAIPlayer} = require("./CaptureGreedyAIPlayer.js")
-const {MinMaxAIPlayer} = require("./MinMaxAIPlayer.js")
+const {MinMaxAIPlayer,EvaluationFunctions} = require("./MinMaxAIPlayer.js")
 
 const PLAYER = { 
   one : {
@@ -108,8 +108,10 @@ class MancalaGame
         case aiType == "capturegreedy" : ret = new CaptureGreedyAIPlayer(); break;
         case aiType.startsWith('minmax') : 
           let a = aiType.split('-')
-          requires(a.length == 2,"MinMax AI player type not formatted correctly, must specify strength: 'minmax-<strength>'")
-          ret = new MinMaxAIPlayer(thisGame,a[1]); 
+          requires(a.length == 3,"MinMax AI player type not formatted correctly, must specify strength: 'minmax-<evalfunc>-<strength>'")
+          let strength = a[2];
+          let evalFunc = EvaluationFunctions[a[1]]
+          ret = new MinMaxAIPlayer(thisGame,strength,evalFunc); 
           break;
         default : ret = null;
       }
