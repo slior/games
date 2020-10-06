@@ -43,7 +43,7 @@ class MancalaGame
    * @param {PLAYER => void} _updatePlayerCallback A callback for updating the current player
    * @param {String => void} _showMsgCallback A callback for showing messages to the player
    * @param {Object} requestedAIPlayers An object with keys 'p1','p2' with string values denoting AI players to play. Can't be null.
-   * @param {Object => } _gameOverCallback A callback for notifying the game is ever; receives an object with keys for the 'winner' and player1/2 stone counts + whether the result is a draw.
+   * @param {Object => void} _gameOverCallback A callback for notifying the game is ever; receives an object with keys for the 'winner' and player1/2 stone counts + whether the result is a draw.
    */
   constructor(gameSize,cnvsELID,_updatePlayerCallback,_showMsgCallback,requestedAIPlayers,_gameOverCallback)
   {
@@ -84,6 +84,10 @@ class MancalaGame
     this.boards.push(ib)
   }
 
+  /**
+   * Retrieve the last board played.
+   * @returns the last board played in this game
+   */
   _currentBoard()
   {
     return this.boards[this.boards.length-1]
@@ -119,17 +123,34 @@ class MancalaGame
     }
   }
 
+  /**
+   * Return whether the game is being played with a UI or not (=headless).
+   * @returns true if it's a headless (no UI) game.
+   */
+  _isHeadless()
+  {
+    return this.boardUI == None
+  }
+
+  /**
+   * Start the game.
+   * Useful when the 1st player is an AI player.
+   */
   start()
   {
     this._makeNextMoveIfCurrentPlayerIsAI();
   }
 
+  /**
+   * Handle UI input - a single cell choice by a player. Essentially make the move played (if valid).
+   * @param {number} boardCell The cell board that was clicked.
+   */
   handleCellClick(boardCell)
   {
     if (!this.gameDone)
     {
       this._resetGameMessagePanel();
-      if (this.isValidMove(boardCell))
+      if (this._isValidMove(boardCell))
         this._makeMove(boardCell)
       else 
         this.showMsg("Invalid Move")
@@ -154,7 +175,7 @@ class MancalaGame
     {
       this.player.ai().ifPresent(aiPlayer => {
         let aiMove = aiPlayer.nextMove(this._currentBoard(),this.player.number);
-        setTimeout(() => { this._makeMove(aiMove)}, 200) //artifical wait, so we can "see" the ai playing
+        setTimeout(() => { this._makeMove(aiMove)}, this._isHeadless() ? 0 : 200) //artifical wait, so we can "see" the ai playing
       })
     }
   }
@@ -206,20 +227,45 @@ class MancalaGame
     this.setGameOver();
   }
 
+  /**
+   * Set the game state to be over
+   */
   setGameOver() { this.gameDone = true; }
 
+  /**
+   * Test whether the current (or given) player is player 1 + combines it with another test.
+   * @param {boolean} andAlso The result of another predicate tested to conjoin with whether the 1st player is playing. Optional, defaults to true (i.e. doesn't affect the result)
+   * @param {PLAYER} p A different player to test, not the current game player. Optional
+   * @returns TRUE iff the current or given player is PLAYER.one and the given parameter is true (if given).
+   */
   player1Playing(andAlso,p)
   { 
-    let pl = p || this.player
-    return pl == PLAYER.one && (typeof(andAlso) == undefined ? true : andAlso);
+    return this._testCurrentPlayer(1,andAlso,p);
   }
 
+  /**
+   * Test whether the current (or given) player is player 2 + combines it with another test.
+   * @param {boolean} andAlso The result of another predicate tested to conjoin with whether the 2nd player is playing. Optional, defaults to true (i.e. doesn't affect the result)
+   * @param {PLAYER} p A different player to test, not the current game player. Optional
+   * @returns TRUE iff the current or given player is PLAYER.one and the given parameter is true (if given).
+   */
   player2Playing(andAlso,p)
   { 
-    let pl = p || this.player
-    return pl == PLAYER.two && (typeof(andAlso) == undefined ? true : andAlso);
+    return this._testCurrentPlayer(2,andAlso,p);
+  }
+
+  _testCurrentPlayer(sideToTest,andAlso,p)
+  {
+    requires(sideToTest == 1 || sideToTest == 2,"Side must be either 1 or 2")
+
+    let pl = p || this.player;
+    return (sideToTest == 1 ? pl == PLAYER.one : pl == PLAYER.two) &&
+            (typeof(andAlso) === 'undefined' ? true : andAlso)
   }
   
+  /**
+   * Return the current game board.
+   */
   theBoard() { return this._currentBoard(); }
 
   /**
@@ -232,6 +278,12 @@ class MancalaGame
     this.boards.pop();
   }
 
+  /**
+   * Given a board a side and cell to play - make the move on the board.
+   * @param {ImmutableMancalaBoard} board The board on which to play
+   * @param {number (1|2)} forPlayer The side to play for, either 1 or 2.
+   * @param {number} cell The cell to play
+   */
   makeMoveOnBoard(board,forPlayer,cell)
   { //TODO: this should be factored out of the class
     requires(board != null, "Board can't be null when calculating move on board")
@@ -302,13 +354,16 @@ class MancalaGame
       this._pushNewBoard(_);
   }
 
-  isValidMove(boardCell)
+  _isValidMove(boardCell)
   {
     let isValidPlayer1Move = this.player == PLAYER.one && this._currentBoard().isPlayer1Cell(boardCell);
     let isValidPlayer2Move = this.player == PLAYER.two && this._currentBoard().isPlayer2Cell(boardCell);
     return isValidPlayer1Move || isValidPlayer2Move;
   }
 
+  /**
+   * Toggle the current player to the other one
+   */
   togglePlayer()
   {
     this.player = this.player.theOtherOne();

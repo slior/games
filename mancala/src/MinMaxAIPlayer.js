@@ -80,7 +80,6 @@ class MinMaxAIPlayer
                     minSubnode = childNode
                 }
             })
-            // dbg(`Minimizing player returning: ${JSON.stringify(minSubnode)}`)
             return minSubnode;
         }
 

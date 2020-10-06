@@ -37,4 +37,48 @@ describe("Mancala Game", function() {
             game.theBoard().stonesIn(cell2).should.equal(origCell2Count);
         })
     })
+
+    describe("player1/2 is playing",function() {
+        it("should return true when player 1 is playing and asked for player 1, false for player 2",function() {
+            game.player1Playing().should.be.true
+            game.player2Playing().should.be.false
+        })
+
+        it("should return false for player 1 and true for player 2 when player 2 is playing.", function() {
+            game.playCell(2) //this also tests 'toggleplayer'
+                game.player1Playing().should.be.false;
+                game.player2Playing().should.be.true;
+            game.revertBoard();
+        })
+
+        it ("should take into account the 'andAlso' parameter passed",function() {
+            game.player1Playing(1 == 2).should.be.false;
+            game.playCell(1)
+                game.player2Playing(3 == 4).should.be.false;
+            game.revertBoard()
+        })
+    })
+
+    describe("isValid",function() {
+        it("should return true when asked to play a valid cell",function() {
+            game._isValidMove(1).should.be.true;
+            game.playCell(1)
+                game._isValidMove(TEST_CELL_COUNT-1).should.be.true //testing also for player 2
+            game.revertBoard();
+        })
+
+        it("should return false for playing the mancalas (player homes)",function() {
+            game._isValidMove(0).should.be.false
+            game._isValidMove(TEST_CELL_COUNT/2).should.be.false
+        })
+
+        it("should return false when asked to make an invalid move",function() {
+            game._isValidMove(TEST_CELL_COUNT-1).should.be.false;
+            
+            game.playCell(1)
+                game._isValidMove(2).should.be.false;
+            game.revertBoard();
+        })
+    })
+
 })
