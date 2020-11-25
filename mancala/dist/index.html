@@ -23,9 +23,14 @@
       #divMsg  {
         margin:auto;
         width:20%;
+        min-height: 100px;
       }
 
       #divCanvas {
+        margin:auto;
+      }
+
+      #divInstructions {
         margin:auto;
       }
 
@@ -34,7 +39,22 @@
         color: red;
         border : 2px solid red;
       }
-      
+      table,thead,td {
+        border: 1px solid black;
+      }
+      table {
+        border-collapse: collapse;
+      }
+      thead {
+        font-weight: bold;
+        text-align: center;
+      }
+
+      .code {
+        font-family: 'Courier New';
+      }
+
+
       </style>
       <script src="main.js"></script>
       <script>
@@ -112,7 +132,39 @@
       Player: <span id="spnPlayer"></span>
     </div>
     <div id="divMsg">
-      
+    </div>
+    <hr/>
+    <div id="divInstructions">
+      <h2>Instructions</h2>
+      <p>To play: click on a cell to make a move.</p>
+      <h3>Available Parameters</h3>
+      <p>It's possible to pass some parameters to control the gameplay. Parameters are passed in the URL, separated by the &amp; character.</p>
+      <table>
+        <thead>
+          <td>Parameter Name</td>
+          <td>Description</td>
+          <td>Possible Values</td>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="code">size</td>
+            <td>The size of the game - number of cells.</td>
+            <td>Even number between 6 and 28</td>
+          </tr>
+          <tr>
+            <td class="code">p1,p2</td>
+            <td>Specify bots (AI) players for either player 1 or 2 respectively</td>
+            <td>
+              <ul>
+                <li><span class="code">simple</span>: a simple AI (picks the cell with the most stones)</li>
+                <li><span class="code">random</span>: a simple AI (picks a random cell)</li>
+                <li><span class="code">capturegreedy</span>: attemps to play the cell that will capture the most stones</li>
+                <li><span class="code">minmax-<i>func</i>-<i>strength</i></span>: a Minimax implementation with a given strength (search depth, 1 to 10) and evaluation function (only <span class="code">count_diff</span> at the moment)</li>
+              </ul>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </body>
 </html>

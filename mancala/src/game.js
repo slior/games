@@ -319,7 +319,7 @@ class MancalaGame
     let targetCells =  range(1,stepCount)
                         .map(steps => _.cellFrom(fromCell,steps,pl.number))
                         .filter(c => c != _.homeOf(pl.theOtherOne().number)) //remove, if applicable, the cell of the other player's mancala
-    while (targetCells.length < stepCount) //add any cells, until we reach a situation where we have enough holes to fill (per the stone count in the played cell)
+    while (targetCells.length < stepCount) //add any cells, until we reach a situation where we have enough cells to fill (per the stone count in the played cell)
     {
       let addedCell = _.cellFrom(targetCells[targetCells.length-1],1)
       if (addedCell == _.homeOf(pl.theOtherOne().number))
